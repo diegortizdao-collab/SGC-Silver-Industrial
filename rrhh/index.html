@@ -108,8 +108,8 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
 <div id="ausT" class="hide" style="display:grid;gap:16px">
   <section class="card" id="cargaC">
     <h2>Cargar el ausentismo del mes</h2>
-    <p class="note">Subí el "Informe mensual de ausentismo y retrasos" que ya armás (.xls o .xlsx). La página lo calcula en tu computadora: a la base solo viaja el total del mes (días ausentes y días laborables). <b>No se guardan nombres ni los días de cada persona.</b></p>
-    <input type="file" id="file" accept=".xls,.xlsx">
+    <p class="note">Subí el "Informe mensual de ausentismo y retrasos" que ya armás (.xls o .xlsx). Podés elegir varios meses juntos para cargar el histórico. La página lo calcula en tu computadora: a la base solo viaja el total del mes (días ausentes y días laborables). <b>No se guardan nombres ni los días de cada persona.</b></p>
+    <input type="file" id="file" accept=".xls,.xlsx" multiple>
     <div id="prev" style="margin-top:12px"></div>
     <button class="btn pri hide" id="guardar" style="margin-top:10px">Guardar</button>
     <p class="msg" id="msg"></p>
@@ -253,44 +253,51 @@ async function historial(){
 const norm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
 const MES={ENERO:1,FEBRERO:2,MARZO:3,ABRIL:4,MAYO:5,JUNIO:6,JULIO:7,AGOSTO:8,AGSOTO:8,SEPTIEMBRE:9,SETIEMBRE:9,OCTUBRE:10,NOVIEMBRE:11,DICIEMBRE:12};
 const CONOCIDOS=new Set(['D','S','F','DJ','VAC','IT','IT-DJ','JI','EA','LG','LE','SUS','AA','AS','ILT','-','RA']);
-let dato=null;
+let datos=[];
+function leerAus(rows,nombre){
+  let mes=null,anio=null;
+  for(let i=0;i<Math.min(rows.length,10);i++){
+    const lab=norm(rows[i][0]);
+    if(lab==='PERIODO'){const t=norm(rows[i][4]);Object.keys(MES).forEach(k=>{if(t.includes(k))mes=MES[k];});const y=t.match(/20\d\d/);if(y)anio=Number(y[0]);}
+    if(lab==='ANO'&&typeof rows[i][4]==='number') anio=anio||rows[i][4];
+  }
+  if(!mes||!anio) throw new Error('no pude leer el mes y el año del encabezado ("PERIODO")');
+  const DIAS=[...Array(15).keys()].map(i=>i+1).concat([...Array(16).keys()].map(i=>i+35));
+  let num=0,den=0,n=0; const cod={};
+  rows.slice(9).forEach(r=>{
+    if(!r[0]||typeof r[70]!=='number') return; n++;
+    const c={}; DIAS.forEach(k=>{const v=String(r[k]??'').trim().toUpperCase(); if(v){c[v]=(c[v]||0)+1;cod[v]=(cod[v]||0)+1;}});
+    num+=(c.AA||0)+(c.AS||0)+(c.ILT||0);
+    den+=r[70]-(c.LG||0)-(c.LE||0)-(c.SUS||0);
+  });
+  if(!n||den<=0) throw new Error('no encontré filas de personal con días laborables');
+  return {periodo:anio+'-'+String(mes).padStart(2,'0'),n,num,den,it:(cod['IT']||0)+(cod['IT-DJ']||0),dj:(cod['DJ']||0)+(cod['IT-DJ']||0),raros:Object.keys(cod).filter(k=>!CONOCIDOS.has(k)),valor:num/den,nombre};
+}
 $('file').onchange=async ev=>{
-  const f=ev.target.files[0]; if(!f) return; say($('msg'),'Leyendo…'); $('prev').innerHTML=''; $('guardar').classList.add('hide'); dato=null;
+  const fs=[...ev.target.files]; if(!fs.length) return; say($('msg'),'Leyendo…'); $('prev').innerHTML=''; $('guardar').classList.add('hide'); datos=[];
+  const fallas=[];
   try{
     if(typeof XLSX==='undefined') throw new Error('No se pudo cargar el lector de Excel. Revisá la conexión a internet.');
-    const wb=XLSX.read(await f.arrayBuffer(),{});
-    const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''});
-    let mes=null,anio=null;
-    for(let i=0;i<Math.min(rows.length,10);i++){
-      const lab=norm(rows[i][0]);
-      if(lab==='PERIODO'){const t=norm(rows[i][4]);Object.keys(MES).forEach(k=>{if(t.includes(k))mes=MES[k];});const y=t.match(/20\d\d/);if(y)anio=Number(y[0]);}
-      if(lab==='ANO'&&typeof rows[i][4]==='number') anio=anio||rows[i][4];
+    for(const f of fs){
+      try{const wb=XLSX.read(await f.arrayBuffer(),{});datos.push(leerAus(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''}),f.name));}
+      catch(e){fallas.push(f.name+': '+e.message);}
     }
-    if(!mes||!anio) throw new Error('No pude leer el mes y el año del encabezado ("PERIODO"). Revisá que sea el informe mensual.');
-    const DIAS=[...Array(15).keys()].map(i=>i+1).concat([...Array(16).keys()].map(i=>i+35));
-    let num=0,den=0,n=0; const cod={};
-    rows.slice(9).forEach(r=>{
-      if(!r[0]||typeof r[70]!=='number') return; n++;
-      const c={}; DIAS.forEach(k=>{const v=String(r[k]??'').trim().toUpperCase(); if(v){c[v]=(c[v]||0)+1;cod[v]=(cod[v]||0)+1;}});
-      num+=(c.AA||0)+(c.AS||0)+(c.ILT||0);
-      den+=r[70]-(c.LG||0)-(c.LE||0)-(c.SUS||0);
-    });
-    if(!n||den<=0) throw new Error('No encontré filas de personal con días laborables. ¿Es el informe mensual de ausentismo?');
-    const it=(cod['IT']||0)+(cod['IT-DJ']||0), dj=(cod['DJ']||0)+(cod['IT-DJ']||0);
-    const periodo=anio+'-'+String(mes).padStart(2,'0'), p=num/den;
-    const raros=Object.keys(cod).filter(k=>!CONOCIDOS.has(k));
-    dato={indicador:'ausentismo',periodo,valor:p,num,den,fuente:'Informe RRHH '+f.name};
-    $('prev').innerHTML=`<table><tbody><tr><td>Mes</td><td><b>${periodo}</b></td></tr><tr><td>Personal en el informe</td><td>${n}</td></tr><tr><td>Días ausentes</td><td>${num}</td></tr><tr><td>Días laborables netos</td><td>${den}</td></tr><tr><td>Ingresos tarde (IT)<small>solo informativo, no es ausencia</small></td><td>${it}</td></tr><tr><td>Demoras en la jornada (DJ)<small>solo informativo, no es ausencia</small></td><td>${dj}</td></tr><tr><td>Ausentismo del mes</td><td class="${p<0.05?'ok':'off'}">${(p*100).toFixed(2).replace('.',',')}%</td></tr></tbody></table>`;
-    say($('msg'),(raros.length?'Atención: hay códigos que no están en el procedimiento ('+raros.join(', ')+'). Consultá con Gestión de calidad antes de guardar. ':'')+'Revisá que el mes y el porcentaje sean los esperados.');
-    $('guardar').textContent='Guardar '+periodo; $('guardar').classList.remove('hide');
+    const vistos=new Set();datos=datos.filter(d=>{if(vistos.has(d.periodo)){fallas.push(d.nombre+': el mes '+d.periodo+' está repetido, se usa el primero');return false;}vistos.add(d.periodo);return true;}).sort((a,b)=>a.periodo<b.periodo?-1:1);
+    if(!datos.length) throw new Error('Ningún archivo se pudo leer. '+fallas.join(' · '));
+    const raros=[...new Set(datos.flatMap(d=>d.raros))];
+    $('prev').innerHTML='<div class="tbl"><table><thead><tr><th>Mes</th><th>Personal</th><th>Días ausentes</th><th>Días laborables</th><th>IT</th><th>DJ</th><th>Ausentismo</th></tr></thead><tbody>'+datos.map(d=>`<tr><td>${d.periodo}</td><td>${d.n}</td><td>${d.num}</td><td>${d.den}</td><td>${d.it}</td><td>${d.dj}</td><td class="${d.valor<0.05?'ok':'off'}">${(d.valor*100).toFixed(2).replace('.',',')}%</td></tr>`).join('')+'</tbody></table></div><p class="note">IT (ingresos tarde) y DJ (demoras en la jornada) son solo informativos: no cuentan como ausencia.</p>';
+    say($('msg'),(fallas.length?'Atención: '+fallas.join(' · ')+'. ':'')+(raros.length?'Hay códigos que no están en el procedimiento ('+raros.join(', ')+'). Consultá con Gestión de calidad antes de guardar. ':'')+'Revisá que los meses y porcentajes sean los esperados.',fallas.length?'err':'');
+    $('guardar').textContent=datos.length>1?'Guardar los '+datos.length+' meses':'Guardar '+datos[0].periodo; $('guardar').classList.remove('hide');
   }catch(e){say($('msg'),e.message,'err');}
 };
 $('guardar').onclick=async()=>{
   try{
     say($('msg'),'Guardando…');
-    const r=await api('/api/apc/valores',{method:'PUT',body:JSON.stringify({valores:[dato]})});
-    if(r.rechazados&&r.rechazados.length){say($('msg'),'No se guardó: '+r.rechazados[0].motivo+'. Consultá con Gestión de calidad.','err');return;}
-    say($('msg'),'Listo: el ausentismo de '+dato.periodo+' quedó guardado.','okk'); $('guardar').classList.add('hide'); $('file').value=''; historial();
+    const valores=datos.map(d=>({indicador:'ausentismo',periodo:d.periodo,valor:d.valor,num:d.num,den:d.den,fuente:'Informe RRHH '+d.nombre}));
+    const r=await api('/api/apc/valores',{method:'PUT',body:JSON.stringify({valores})});
+    const rech=r.rechazados||[];
+    say($('msg'),rech.length?('Guardados '+(valores.length-rech.length)+'. No se guardó: '+rech.map(x=>(x.periodo||x.mes||'')+' ('+x.motivo+')').join('; ')+'. Consultá con Gestión de calidad.'):'Listo: quedaron guardados '+valores.length+' mes(es).',rech.length?'err':'okk');
+    $('guardar').classList.add('hide'); $('file').value=''; historial();
   }catch(e){say($('msg'),e.message,'err');}
 };
 
