@@ -96,9 +96,9 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
   <section class="card">
     <h2>Cómo se calcula</h2>
     <ul style="margin:6px 0 0;padding-left:18px;font-size:13.5px">
-      <li><b>Días ausentes:</b> los códigos AA (ausente con aviso), AS (ausente sin aviso) e ILT de cada día del informe.</li>
+      <li><b>Días ausentes:</b> los códigos AA (ausente con aviso), AS (ausente sin aviso) e ILT (accidente o enfermedad) de cada día del informe.</li>
       <li><b>Días laborables:</b> el total mensual de laborables de cada persona, menos los días de licencia gremial (LG), licencia por examen (LE) y suspensión (SUS).</li>
-      <li><b>No cuentan como ausencia:</b> vacaciones, feriados, descansos, IT, IT-DJ y DJ.</li>
+      <li><b>No cuentan como ausencia:</b> vacaciones, feriados, descansos, ingresos tarde (IT) y demoras en la jornada (DJ, por ejemplo en el comedor). Son retrasos, no ausencias; la página los cuenta aparte como información.</li>
       <li><b>Ausentismo del mes</b> = días ausentes / días laborables. El anual es el acumulado ponderado de los meses.</li>
     </ul>
     <p class="note">Procedimiento: Instructivo I.09 Rev. 012 (sección 5.2).</p>
@@ -166,10 +166,11 @@ $('file').onchange=async ev=>{
       den+=r[70]-(c.LG||0)-(c.LE||0)-(c.SUS||0);
     });
     if(!n||den<=0) throw new Error('No encontré filas de personal con días laborables. ¿Es el informe mensual de ausentismo?');
+    const it=(cod['IT']||0)+(cod['IT-DJ']||0), dj=(cod['DJ']||0)+(cod['IT-DJ']||0);
     const periodo=anio+'-'+String(mes).padStart(2,'0'), p=num/den;
     const raros=Object.keys(cod).filter(k=>!CONOCIDOS.has(k));
     dato={indicador:'ausentismo',periodo,valor:p,num,den,fuente:'Informe RRHH '+f.name};
-    $('prev').innerHTML=`<table><tbody><tr><td>Mes</td><td><b>${periodo}</b></td></tr><tr><td>Personal en el informe</td><td>${n}</td></tr><tr><td>Días ausentes</td><td>${num}</td></tr><tr><td>Días laborables netos</td><td>${den}</td></tr><tr><td>Ausentismo del mes</td><td class="${p<0.05?'ok':'off'}">${(p*100).toFixed(2).replace('.',',')}%</td></tr></tbody></table>`;
+    $('prev').innerHTML=`<table><tbody><tr><td>Mes</td><td><b>${periodo}</b></td></tr><tr><td>Personal en el informe</td><td>${n}</td></tr><tr><td>Días ausentes</td><td>${num}</td></tr><tr><td>Días laborables netos</td><td>${den}</td></tr><tr><td>Ingresos tarde (IT)<small>solo informativo, no es ausencia</small></td><td>${it}</td></tr><tr><td>Demoras en la jornada (DJ)<small>solo informativo, no es ausencia</small></td><td>${dj}</td></tr><tr><td>Ausentismo del mes</td><td class="${p<0.05?'ok':'off'}">${(p*100).toFixed(2).replace('.',',')}%</td></tr></tbody></table>`;
     say($('msg'),(raros.length?'Atención: hay códigos que no están en el procedimiento ('+raros.join(', ')+'). Consultá con Gestión de calidad antes de guardar. ':'')+'Revisá que el mes y el porcentaje sean los esperados.');
     $('guardar').textContent='Guardar '+periodo; $('guardar').classList.remove('hide');
   }catch(e){say($('msg'),e.message,'err');}
