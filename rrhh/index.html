@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RRHH – Ausentismo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#F5F9FD; --surface:#fff; --surface-2:#EFF6FC; --border:#D7E6F5;
+  --text:#0B1E3D; --dim:#4C6483; --faint:#8AA0BC; --blue:#1450D6;
+  --ok-bg:#C6EFCE; --ok-fg:#006100; --off-bg:#FFC7CE; --off-fg:#9C0006; --wip-bg:#FFEB9C; --wip-fg:#9C5700;
+  --fd:'Big Shoulders Display','Arial Narrow',sans-serif; --fb:'IBM Plex Sans',-apple-system,'Segoe UI',sans-serif; --fm:'IBM Plex Mono',Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#0A1220; --surface:#101B2E; --surface-2:#15233A; --border:#223252;
+    --text:#E8EEF8; --dim:#9FB0C8; --faint:#647389; --blue:#4E86FF;
+    --ok-bg:#12351F; --ok-fg:#7BE0A0; --off-bg:#3F1B1D; --off-fg:#FF9B9B; --wip-bg:#3A2F10; --wip-fg:#F2CF6B;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0A1220; --surface:#101B2E; --surface-2:#15233A; --border:#223252;
+  --text:#E8EEF8; --dim:#9FB0C8; --faint:#647389; --blue:#4E86FF;
+  --ok-bg:#12351F; --ok-fg:#7BE0A0; --off-bg:#3F1B1D; --off-fg:#FF9B9B; --wip-bg:#3A2F10; --wip-fg:#F2CF6B;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--fb);font-size:15px;line-height:1.5}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+header{background:var(--surface);border-bottom:1px solid var(--border)}
+header .wrap{padding-top:14px;padding-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+h1{font-family:var(--fd);font-weight:800;font-size:30px;margin:0;line-height:1.05}
+h1 small{display:block;font:500 12px var(--fb);color:var(--dim);margin-top:4px}
+.sp{flex:1}
+a.back{color:var(--blue);text-decoration:none;font-size:13px;font-weight:600}
+main{padding:22px 0 40px;display:grid;gap:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.card h2{font-size:16px;margin:0 0 6px}
+.note{font-size:13px;color:var(--dim);margin:6px 0}
+input[type=email],input[type=password]{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font:inherit}
+.btn{font:600 14px var(--fb);padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+form{display:grid;gap:10px;max-width:380px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{border:1px solid var(--border);padding:7px 10px;text-align:right}
+th:first-child,td:first-child{text-align:left}
+thead th{background:var(--surface-2)}
+td.ok{background:var(--ok-bg);color:var(--ok-fg);font-weight:600}
+td.off{background:var(--off-bg);color:var(--off-fg);font-weight:600}
+td small{display:block;color:var(--faint);font-size:11px}
+.msg{font-size:13.5px;margin-top:10px}
+.msg.err{color:var(--off-fg)}.msg.okk{color:var(--ok-fg)}
+.hide{display:none!important}
+.tbl{overflow-x:auto}
+footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Recursos Humanos – Ausentismo<small>Silver Industrial · Alimenta el Apéndice C del SGC (indicador de ausentismo, meta &lt; 5%)</small></h1>
+  <span class="sp"></span>
+  <button class="btn hide" id="salir">Salir</button>
+</div></header>
+
+<main class="wrap">
+  <section class="card" id="loginC">
+    <h2>Ingresar</h2>
+    <form id="loginF">
+      <input id="lEmail" type="email" placeholder="Mail" autocomplete="username" required>
+      <input id="lPass" type="password" placeholder="Contraseña" autocomplete="current-password" required>
+      <button class="btn pri" type="submit">Ingresar</button>
+    </form>
+    <p class="msg" id="loginMsg"></p>
+  </section>
+
+  <section class="card hide" id="cargaC">
+    <h2>Cargar el ausentismo del mes</h2>
+    <p class="note">Subí el "Informe mensual de ausentismo y retrasos" que ya armás (.xls o .xlsx). La página lo calcula en tu computadora: a la base solo viaja el total del mes (días ausentes y días laborables). <b>No se guardan nombres ni los días de cada persona.</b></p>
+    <input type="file" id="file" accept=".xls,.xlsx">
+    <div id="prev" style="margin-top:12px"></div>
+    <button class="btn pri hide" id="guardar" style="margin-top:10px">Guardar</button>
+    <p class="msg" id="msg"></p>
+  </section>
+
+  <section class="card hide" id="histC">
+    <h2>Meses cargados</h2>
+    <div class="tbl"><table id="hist"></table></div>
+    <p class="note">Verde: cumple la meta (&lt; 5%). Rojo: la supera. Si cargás un mes de nuevo, reemplaza el anterior mientras el período no esté cerrado por Gestión de calidad.</p>
+  </section>
+
+  <section class="card">
+    <h2>Cómo se calcula</h2>
+    <ul style="margin:6px 0 0;padding-left:18px;font-size:13.5px">
+      <li><b>Días ausentes:</b> los códigos AA (ausente con aviso), AS (ausente sin aviso) e ILT de cada día del informe.</li>
+      <li><b>Días laborables:</b> el total mensual de laborables de cada persona, menos los días de licencia gremial (LG), licencia por examen (LE) y suspensión (SUS).</li>
+      <li><b>No cuentan como ausencia:</b> vacaciones, feriados, descansos, IT, IT-DJ y DJ.</li>
+      <li><b>Ausentismo del mes</b> = días ausentes / días laborables. El anual es el acumulado ponderado de los meses.</li>
+    </ul>
+    <p class="note">Procedimiento: Instructivo I.09 Rev. 012 (sección 5.2).</p>
+  </section>
+</main>
+
+<footer><div class="wrap">Desarrollado por Mgter. Diego Ortiz — Líder de Mejora Continua | Consultor ISO · +54 9 11 4170-6692</div></footer>
+
+<script>
+const API='https://nc-silver-api.diegortizdao.workers.dev';
+const $=id=>document.getElementById(id);
+const tok={get(){try{return sessionStorage.getItem('rrhh_tok')}catch{return null}},set(v){try{v?sessionStorage.setItem('rrhh_tok',v):sessionStorage.removeItem('rrhh_tok')}catch{}}};
+async function api(path,opt={}){
+  const r=await fetch(API+path,{...opt,headers:{'Content-Type':'application/json',Authorization:'Bearer '+(tok.get()||''),...(opt.headers||{})}});
+  const d=await r.json().catch(()=>({}));
+  if(r.status===401){tok.set(null);entrar(false);throw new Error('La sesión venció. Volvé a ingresar.');}
+  if(!r.ok) throw new Error(d.error||('Error '+r.status));
+  return d;
+}
+function entrar(on){
+  $('loginC').classList.toggle('hide',on);['cargaC','histC','salir'].forEach(i=>$(i).classList.toggle('hide',!on));
+}
+function say(el,t,cls){el.textContent=t;el.className='msg'+(cls?' '+cls:'');}
+$('loginF').onsubmit=async ev=>{
+  ev.preventDefault(); say($('loginMsg'),'Ingresando…');
+  try{
+    const r=await fetch(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('lEmail').value,password:$('lPass').value})});
+    const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||'No se pudo ingresar');
+    tok.set(d.token); $('lPass').value=''; say($('loginMsg'),''); entrar(true); historial();
+  }catch(e){say($('loginMsg'),e.message,'err');}
+};
+$('salir').onclick=()=>{tok.set(null);entrar(false);};
+
+async function historial(){
+  try{
+    const v=(await api('/api/apc/valores')).filter(x=>x.indicador==='ausentismo'&&/^\d{4}-\d{2}$/.test(x.periodo)).sort((a,b)=>a.periodo<b.periodo?1:-1);
+    $('hist').innerHTML='<thead><tr><th>Mes</th><th>Días ausentes</th><th>Días laborables</th><th>Ausentismo</th><th>Cargado</th></tr></thead><tbody>'+
+      (v.length?v.map(x=>{const p=Number(x.valor);return `<tr><td>${x.periodo}</td><td>${x.num??'—'}</td><td>${x.den??'—'}</td><td class="${p<0.05?'ok':'off'}">${(p*100).toFixed(2).replace('.',',')}%</td><td>${new Date(x.actualizado_en).toLocaleDateString('es-AR')}<small>${x.actualizado_por||''}</small></td></tr>`;}).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--faint)">Todavía no hay meses cargados</td></tr>')+'</tbody>';
+  }catch(e){}
+}
+
+const norm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+const MES={ENERO:1,FEBRERO:2,MARZO:3,ABRIL:4,MAYO:5,JUNIO:6,JULIO:7,AGOSTO:8,AGSOTO:8,SEPTIEMBRE:9,SETIEMBRE:9,OCTUBRE:10,NOVIEMBRE:11,DICIEMBRE:12};
+const CONOCIDOS=new Set(['D','S','F','DJ','VAC','IT','IT-DJ','JI','EA','LG','LE','SUS','AA','AS','ILT','-','RA']);
+let dato=null;
+$('file').onchange=async ev=>{
+  const f=ev.target.files[0]; if(!f) return; say($('msg'),'Leyendo…'); $('prev').innerHTML=''; $('guardar').classList.add('hide'); dato=null;
+  try{
+    if(typeof XLSX==='undefined') throw new Error('No se pudo cargar el lector de Excel. Revisá la conexión a internet.');
+    const wb=XLSX.read(await f.arrayBuffer(),{});
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''});
+    let mes=null,anio=null;
+    for(let i=0;i<Math.min(rows.length,10);i++){
+      const lab=norm(rows[i][0]);
+      if(lab==='PERIODO'){const t=norm(rows[i][4]);Object.keys(MES).forEach(k=>{if(t.includes(k))mes=MES[k];});const y=t.match(/20\d\d/);if(y)anio=Number(y[0]);}
+      if(lab==='ANO'&&typeof rows[i][4]==='number') anio=anio||rows[i][4];
+    }
+    if(!mes||!anio) throw new Error('No pude leer el mes y el año del encabezado ("PERIODO"). Revisá que sea el informe mensual.');
+    const DIAS=[...Array(15).keys()].map(i=>i+1).concat([...Array(16).keys()].map(i=>i+35));
+    let num=0,den=0,n=0; const cod={};
+    rows.slice(9).forEach(r=>{
+      if(!r[0]||typeof r[70]!=='number') return; n++;
+      const c={}; DIAS.forEach(k=>{const v=String(r[k]??'').trim().toUpperCase(); if(v){c[v]=(c[v]||0)+1;cod[v]=(cod[v]||0)+1;}});
+      num+=(c.AA||0)+(c.AS||0)+(c.ILT||0);
+      den+=r[70]-(c.LG||0)-(c.LE||0)-(c.SUS||0);
+    });
+    if(!n||den<=0) throw new Error('No encontré filas de personal con días laborables. ¿Es el informe mensual de ausentismo?');
+    const periodo=anio+'-'+String(mes).padStart(2,'0'), p=num/den;
+    const raros=Object.keys(cod).filter(k=>!CONOCIDOS.has(k));
+    dato={indicador:'ausentismo',periodo,valor:p,num,den,fuente:'Informe RRHH '+f.name};
+    $('prev').innerHTML=`<table><tbody><tr><td>Mes</td><td><b>${periodo}</b></td></tr><tr><td>Personal en el informe</td><td>${n}</td></tr><tr><td>Días ausentes</td><td>${num}</td></tr><tr><td>Días laborables netos</td><td>${den}</td></tr><tr><td>Ausentismo del mes</td><td class="${p<0.05?'ok':'off'}">${(p*100).toFixed(2).replace('.',',')}%</td></tr></tbody></table>`;
+    say($('msg'),(raros.length?'Atención: hay códigos que no están en el procedimiento ('+raros.join(', ')+'). Consultá con Gestión de calidad antes de guardar. ':'')+'Revisá que el mes y el porcentaje sean los esperados.');
+    $('guardar').textContent='Guardar '+periodo; $('guardar').classList.remove('hide');
+  }catch(e){say($('msg'),e.message,'err');}
+};
+$('guardar').onclick=async()=>{
+  try{
+    say($('msg'),'Guardando…');
+    const r=await api('/api/apc/valores',{method:'PUT',body:JSON.stringify({valores:[dato]})});
+    if(r.rechazados&&r.rechazados.length){say($('msg'),'No se guardó: '+r.rechazados[0].motivo+'. Consultá con Gestión de calidad.','err');return;}
+    say($('msg'),'Listo: el ausentismo de '+dato.periodo+' quedó guardado.','okk'); $('guardar').classList.add('hide'); $('file').value=''; historial();
+  }catch(e){say($('msg'),e.message,'err');}
+};
+if(tok.get()){entrar(true);historial();}
+</script>
+</body>
+</html>
