@@ -307,7 +307,7 @@ function modoConectado(on,email){
   $('connEstado').textContent=on?('Conectado a Neon como '+email+'. Datos en vivo.'):'Sin conexión: se muestra la foto de datos al 10/10/2026.';
 }
 const sum=a=>a.reduce((x,y)=>x+y,0);
-function aplicarDatos(oti,nc,vals,cier){
+function aplicarDatos(oti,nc,vals,cier,cap){
   // serie mensual = OTI (Neon) + NC (Q.21)
   const ms=new Map();
   oti.forEach(o=>ms.set(o.mes,{m:o.mes,oti_total:o.oti_total,oti_ent:o.oti_ent,atrasos:o.atrasos,quejas:0,devol:0,fallas:0,fuente_nc:'Q.21 (Neon)'}));
@@ -342,14 +342,17 @@ function aplicarDatos(oti,nc,vals,cier){
     else if(anual!==null) r.acc=anual; // acumulado ponderado cargado como valor del año (carga inicial)
     else r.acc=sum(mens.map(x=>Number(x.valor)))/mens.length;
   }));
+  if(cap&&cap.programadas>0){ // capacitación: viene del registro de RRHH (A.18/A.14), no de una carga manual
+    const r=get('capacitacion'); r.c={0:cap.valor}; r.acc=cap.valor; r.wip=new Date()<new Date('2027-01-01'); r.nota=cap.cumplidas+' de '+cap.programadas+' cumplidas';
+  }
   const cerr=new Set(cier.map(c=>c.periodo));
   const e=$('estado'); if(cerr.has('2026')){e.textContent='Período cerrado';e.style.background='var(--ok-bg)';e.style.color='var(--ok-fg)';} else {e.textContent='Período abierto · provisional';e.style.background='';e.style.color='';}
   planilla();serie();
 }
 async function cargarApi(){
-  const [oti,nc,vals,cier]=await Promise.all([api('/api/apc/oti'),api('/api/apc/nc-mensual'),api('/api/apc/valores'),api('/api/apc/cierres')]);
+  const [oti,nc,vals,cier,cap]=await Promise.all([api('/api/apc/oti'),api('/api/apc/nc-mensual'),api('/api/apc/valores'),api('/api/apc/cierres'),api('/api/apc/capacitacion-resumen?anio=2026').catch(()=>null)]);
   if(!oti.length&&!vals.length){ msg('Conexión correcta, pero la base del Apéndice C está vacía. Corré la migración 002 y usá "Cargar datos iniciales a Neon".'); return false; }
-  aplicarDatos(oti,nc,vals,cier); msg('Datos cargados desde Neon ('+oti.length+' meses de OTI, '+vals.length+' valores).'); return true;
+  aplicarDatos(oti,nc,vals,cier,cap); msg('Datos cargados desde Neon ('+oti.length+' meses de OTI, '+vals.length+' valores).'); return true;
 }
 $('loginF').onsubmit=async ev=>{
   ev.preventDefault(); msg('Conectando…');
