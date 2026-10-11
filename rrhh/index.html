@@ -394,8 +394,8 @@ $('guardar').onclick=async()=>{
     const orden=[...meses.keys()].sort();
     say(m,'Guardando totales de '+orden.length+' mes(es)…');
     const valores=orden.map(p=>{const mm=meses.get(p),a=AUS.agregarMes(mm.filas);return {indicador:'ausentismo',periodo:p,valor:a.valor,num:a.num,den:a.den,fuente:'Informe RRHH '+mm.fuente};});
-    const r=await api('/api/apc/valores',{method:'PUT',body:JSON.stringify({valores})});
-    const rech=r.rechazados||[];
+    const rech=[];
+    for(let i=0;i<valores.length;i+=20){const r=await api('/api/apc/valores',{method:'PUT',body:JSON.stringify({valores:valores.slice(i,i+20)})});(r.rechazados||[]).forEach(x=>rech.push(x));} // tandas: Cloudflare limita las consultas por pedido
     // 3) por persona
     const al=aliasLS.get();nombres.forEach(n=>{al[n]=mapa[n];});aliasLS.set(al);
     let sinPermiso=false,k=0;
