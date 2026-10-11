@@ -155,13 +155,25 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
       <div class="card"><h3>Respaldo semestral</h3>
         <p style="font-size:13.5px;margin:6px 0 10px">Exporta los datos que alimentan el Apéndice C (OTI, NC, ausentismo, capacitación, encuestas, evaluaciones) en formato CSV. Se realiza dos veces por año, junto con el respaldo del Q.11.</p>
         <button class="btn" id="exp">Descargar serie mensual (CSV)</button></div>
-      <div class="card"><h3>Pendiente de conexión</h3>
+      <div class="card" id="conn"><h3>Conexión con Q.21 / Neon</h3>
+        <p class="note" id="connEstado" style="margin:4px 0 8px">Sin conexión: se muestra la foto de datos al 10/10/2026.</p>
+        <form id="loginF" style="display:grid;gap:8px">
+          <input id="lEmail" type="email" placeholder="Mail autorizado" autocomplete="username" required style="padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font:inherit">
+          <input id="lPass" type="password" placeholder="Contraseña" autocomplete="current-password" required style="padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font:inherit">
+          <button class="btn pri" type="submit">Conectar</button>
+        </form>
+        <div id="connAcc" style="display:none;gap:8px;flex-direction:column">
+          <button class="btn" id="seed">Cargar datos iniciales a Neon</button>
+          <div style="display:flex;gap:6px"><input id="cPer" placeholder="Período (2026-08 o 2025)" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font:inherit"><button class="btn" id="cerrar">Cerrar período</button></div>
+          <button class="btn" id="salir">Desconectar</button>
+        </div>
+        <p class="note" id="connMsg"></p></div>
+      <div class="card"><h3>Pendiente</h3>
         <ul class="clean">
-          <li>Lectura directa desde la base de Q.21 (Neon) mediante la API existente.</li>
           <li>Importador del archivo "Datos para atrasos de entrega".</li>
           <li>Carga mensual de ausentismo desde RRHH.</li>
-        </ul>
-        <p class="note">Hoy esta página muestra la foto de datos al 10/10/2026.</p></div>
+          <li>Cargar en Q.21 las NC de junio a octubre.</li>
+        </ul></div>
     </div>
   </section>
 </main>
@@ -179,11 +191,11 @@ const AP = [
  {obj:'Satisfacción de los clientes',rows:[
   {ind:'Encuesta hacia Silver',meta:'> 92%',op:'>',cmp:.92,t:'pct',c:{0:.96},acc:.96},
   {ind:'Encuesta respecto de la competencia de Silver',meta:'> 92%',op:'>',cmp:.92,t:'pct',c:{0:.9111},acc:.9111},
-  {ind:'Quejas',meta:'< 3%',op:'<',cmp:.03,t:'pct',c:{0:.01499,6:.00905},acc:.01361},
+  {ind:'Quejas',meta:'< 3%',op:'<',cmp:.03,t:'pct',c:{0:.014986,6:.0090498},acc:.013613},
   {ind:'Demoras en plazo de entrega',meta:'< 20%',op:'<',cmp:.2,t:'pct',c:{0:0,1:.03977,2:0,3:0,4:0,5:0,6:.0566,7:0,8:0},acc:.01047},
   {ind:'% Devoluciones',meta:'< 2%',op:'<',cmp:.02,t:'pct',c:{0:.01053,3:.00668,6:0},acc:.00628}]},
  {obj:'Eficiencia de los procesos',rows:[
-  {ind:'Ingresos vs Egresos',meta:'> 1,5%',op:'>',cmp:.015,t:'pct',c:{0:.00266,1:.00265,2:.00265,3:0,4:.00787,5:0,6:0,7:0,8:0},acc:.01583,soloAcc:true,dec:2},
+  {ind:'Ingresos vs Egresos',meta:'> 1,5%',op:'>',cmp:.015,t:'pct',c:{0:.0026596,1:.0026525,2:.0026455,3:0,4:.007874,5:0,6:0,7:0,8:0},acc:.0158316,soloAcc:true,dec:2},
   {ind:'% Scrap',meta:'< 3%',op:'<',cmp:.03,t:'pct',c:{0:.043,1:.0458,2:.031,3:.0346,4:.024,5:.0201,6:.0503,7:.0405,8:.039},acc:.0357,dec:2},
   {ind:'Eficiencia de Máquinas',meta:'> 89%',op:'>',cmp:.89,t:'pct',c:{0:.9563,1:.9387,2:.9559,3:.9371,4:.9431,5:.9567,6:.9813,7:.9426,8:.9489},acc:.9516,dec:2},
   {ind:'SET UP (hs por cambio)',meta:'3 HS',op:'<',cmp:3,t:'num',c:{0:2.56,1:2.76,2:2.48,3:2.39,4:2.59,5:2.45,6:2.3,7:2.58,8:2.28},acc:2.51}]},
@@ -261,6 +273,98 @@ document.getElementById('exp').onclick=()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='apendice_c_serie_mensual_respaldo.csv';a.click();
 };
 planilla();how();serie();
+
+// ---------------- Conexión con la API (Neon) ----------------
+const API='https://nc-silver-api.diegortizdao.workers.dev';
+const KEY={'Encuesta hacia Silver':'sat_silver','Encuesta respecto de la competencia de Silver':'sat_comp','Quejas':'quejas','Demoras en plazo de entrega':'demoras','% Devoluciones':'devol','Ingresos vs Egresos':'ing_egr','% Scrap':'scrap','Eficiencia de Máquinas':'eficiencia','SET UP (hs por cambio)':'setup','Fallas Internas':'fallas','Evaluación de Proveedores':'proveedores','Cumplimiento del programa de capacitación':'capacitacion','Ausentismo':'ausentismo'};
+AP.forEach(g=>g.rows.forEach(r=>r.k=KEY[r.ind]));
+const SNAP_AP=JSON.stringify(AP), SNAP_SERIE=JSON.stringify(SERIE);
+const store={get(){try{return sessionStorage.getItem('apc_tok')}catch{return null}},set(v){try{v?sessionStorage.setItem('apc_tok',v):sessionStorage.removeItem('apc_tok')}catch{}}};
+const $=id=>document.getElementById(id);
+async function api(path,opt={}){
+  const r=await fetch(API+path,{...opt,headers:{'Content-Type':'application/json',Authorization:'Bearer '+(store.get()||''),...(opt.headers||{})}});
+  if(r.status===401){store.set(null);throw new Error('Sesión vencida o no autorizada');}
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error||('Error '+r.status));
+  return d;
+}
+const msg=t=>{$('connMsg').textContent=t};
+function modoConectado(on,email){
+  $('loginF').style.display=on?'none':'grid';
+  $('connAcc').style.display=on?'flex':'none';
+  $('connEstado').textContent=on?('Conectado a Neon como '+email+'. Datos en vivo.'):'Sin conexión: se muestra la foto de datos al 10/10/2026.';
+}
+const sum=a=>a.reduce((x,y)=>x+y,0);
+function aplicarDatos(oti,nc,vals,cier){
+  // serie mensual = OTI (Neon) + NC (Q.21)
+  const ms=new Map();
+  oti.forEach(o=>ms.set(o.mes,{m:o.mes,oti_total:o.oti_total,oti_ent:o.oti_ent,atrasos:o.atrasos,quejas:0,devol:0,fallas:0,fuente_nc:'Q.21 (Neon)'}));
+  nc.forEach(n=>{const r=ms.get(n.mes)||{m:n.mes,oti_total:0,oti_ent:0,atrasos:0,quejas:0,devol:0,fallas:0};r.quejas=n.quejas;r.devol=n.devol;r.fallas=n.fallas;r.fuente_nc='Q.21 (Neon)';ms.set(n.mes,r);});
+  SERIE.length=0; [...ms.values()].sort((a,b)=>a.m<b.m?-1:1).forEach(r=>SERIE.push(r));
+  // planilla 2026
+  const A=JSON.parse(SNAP_AP); AP.length=0; A.forEach(g=>AP.push(g));
+  AP.forEach(g=>g.rows.forEach(r=>r.k=KEY[r.ind]));
+  const m26=Array.from({length:12},(_,i)=>SERIE.find(x=>x.m==='2026-'+String(i+1).padStart(2,'0'))||null);
+  const base=i=>m26[i]?m26[i].oti_ent:0;
+  const bloque=(r,campo,cortes)=>{ // cortes: [[desde,hasta,colDestino]]
+    r.c={}; let n=0,d=0;
+    cortes.forEach(([a,b,col])=>{const nn=sum(m26.slice(a,b+1).map(x=>x?x[campo]:0)),dd=sum(m26.slice(a,b+1).map((x,i)=>base(a+i)));if(dd>0){r.c[col]=nn/dd;} n+=nn;d+=dd;});
+    r.acc=d>0?n/d:null;
+  };
+  const get=k=>AP.flatMap(g=>g.rows).find(r=>r.k===k);
+  bloque(get('quejas'),'quejas',[[0,5,0],[6,11,6]]);
+  bloque(get('devol'),'devol',[[0,2,0],[3,5,3],[6,8,6],[9,11,9]]);
+  bloque(get('fallas'),'fallas',[[0,2,0],[3,5,3],[6,8,6],[9,11,9]]);
+  const dem=get('demoras'); dem.c={}; for(let i=0;i<12;i++) if(base(i)>0) dem.c[i]=m26[i].atrasos/base(i); dem.acc=sum(m26.map(x=>x?x.atrasos:0))/(sum(m26.map((x,i)=>base(i)))||1);
+  // indicadores con carga propia (apc_valores)
+  AP.forEach(g=>g.rows.forEach(r=>{
+    if(['quejas','devol','fallas','demoras'].includes(r.k)) return;
+    const v=vals.filter(x=>x.indicador===r.k&&x.periodo.startsWith('2026'));
+    if(!v.length) return;
+    r.c={}; let anual=null; const mens=[];
+    const ANUAL=['sat_silver','sat_comp','proveedores','capacitacion'].includes(r.k);
+    v.forEach(x=>{ if(x.periodo==='2026'){ if(ANUAL) r.c[0]=Number(x.valor); anual=Number(x.valor);} else {const i=Number(x.periodo.slice(5))-1; r.c[i]=Number(x.valor); mens.push(x);} });
+    if(ANUAL) r.acc=anual;
+    else if(r.k==='ing_egr') r.acc=sum(mens.map(x=>Number(x.valor)));
+    else if(mens.length&&mens.every(x=>x.num!=null&&x.den!=null&&Number(x.den)>0)) r.acc=sum(mens.map(x=>Number(x.num)))/sum(mens.map(x=>Number(x.den)));
+    else if(anual!==null) r.acc=anual; // acumulado ponderado cargado como valor del año (carga inicial)
+    else r.acc=sum(mens.map(x=>Number(x.valor)))/mens.length;
+  }));
+  const cerr=new Set(cier.map(c=>c.periodo));
+  const e=$('estado'); if(cerr.has('2026')){e.textContent='Período cerrado';e.style.background='var(--ok-bg)';e.style.color='var(--ok-fg)';} else {e.textContent='Período abierto · provisional';e.style.background='';e.style.color='';}
+  planilla();serie();
+}
+async function cargarApi(){
+  const [oti,nc,vals,cier]=await Promise.all([api('/api/apc/oti'),api('/api/apc/nc-mensual'),api('/api/apc/valores'),api('/api/apc/cierres')]);
+  if(!oti.length&&!vals.length){ msg('Conexión correcta, pero la base del Apéndice C está vacía. Corré la migración 002 y usá "Cargar datos iniciales a Neon".'); return false; }
+  aplicarDatos(oti,nc,vals,cier); msg('Datos cargados desde Neon ('+oti.length+' meses de OTI, '+vals.length+' valores).'); return true;
+}
+$('loginF').onsubmit=async ev=>{
+  ev.preventDefault(); msg('Conectando…');
+  try{
+    const d=await fetch(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('lEmail').value,password:$('lPass').value})}).then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('Error '+r.status));return j;});
+    store.set(d.token); $('lPass').value=''; modoConectado(true,d.email); await cargarApi();
+  }catch(e){msg(e.message);}
+};
+$('salir').onclick=()=>{store.set(null);modoConectado(false);SERIE.length=0;JSON.parse(SNAP_SERIE).forEach(x=>SERIE.push(x));AP.length=0;JSON.parse(SNAP_AP).forEach(g=>AP.push(g));AP.forEach(g=>g.rows.forEach(r=>r.k=KEY[r.ind]));planilla();serie();msg('');};
+$('seed').onclick=async()=>{
+  try{
+    msg('Cargando…');
+    const snap=JSON.parse(SNAP_SERIE), ap=JSON.parse(SNAP_AP);
+    const r1=await api('/api/apc/oti',{method:'PUT',body:JSON.stringify({meses:snap.map(x=>({mes:x.m,oti_total:x.oti_total,oti_ent:x.oti_ent,atrasos:x.atrasos,fuente:'Carga inicial 10/10/2026'}))})});
+    const valores=[];
+    ap.forEach(g=>g.rows.forEach(r=>{ if(['quejas','devol','fallas','demoras'].includes(KEY[r.ind])) return;
+      Object.entries(r.c).forEach(([i,v])=>{ const anual=(r.t==='pct'&&['sat_silver','sat_comp','proveedores','capacitacion'].includes(KEY[r.ind])); valores.push({indicador:KEY[r.ind],periodo:anual?'2026':'2026-'+String(Number(i)+1).padStart(2,'0'),valor:v,fuente:'Carga inicial 10/10/2026'}); }); }));
+    ap.forEach(g=>g.rows.forEach(r=>{ const k=KEY[r.ind]; if(['scrap','eficiencia','setup','ausentismo'].includes(k)&&r.acc!=null) valores.push({indicador:k,periodo:'2026',valor:r.acc,fuente:'Acumulado ponderado, carga inicial 10/10/2026'}); }));
+    const r2=await api('/api/apc/valores',{method:'PUT',body:JSON.stringify({valores})});
+    msg('Cargados '+r1.guardados+' meses de OTI y '+r2.guardados+' valores.'); await cargarApi();
+  }catch(e){msg(e.message);}
+};
+$('cerrar').onclick=async()=>{
+  const p=$('cPer').value.trim(); if(!p){msg('Indicá el período (2026-08 o 2025).');return;}
+  try{await api('/api/apc/cierres',{method:'POST',body:JSON.stringify({periodo:p,cerrar:true})}); msg('Período '+p+' cerrado. Ya no admite cambios.'); await cargarApi();}catch(e){msg(e.message);}
+};
+if(store.get()){ modoConectado(true,'(sesión activa)'); cargarApi().catch(e=>{modoConectado(false);msg(e.message);}); }
 </script>
 </body>
 </html>
