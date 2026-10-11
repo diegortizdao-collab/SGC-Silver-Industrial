@@ -349,6 +349,11 @@ function aplicarDatos(oti,nc,vals,cier,cap){
   const e=$('estado'); if(cerr.has('2026')){e.textContent='Período cerrado';e.style.background='var(--ok-bg)';e.style.color='var(--ok-fg)';} else {e.textContent='Período abierto · provisional';e.style.background='';e.style.color='';}
   planilla();serie();
 }
+async function putPorTandas(ruta,campo,lista,n){ // Cloudflare limita las consultas por pedido: se envía en tandas
+  let guardados=0; const rechazados=[];
+  for(let i=0;i<lista.length;i+=n){ const r=await api(ruta,{method:'PUT',body:JSON.stringify({[campo]:lista.slice(i,i+n)})}); guardados+=(r.guardados||0); (r.rechazados||[]).forEach(x=>rechazados.push(x)); }
+  return {guardados,rechazados};
+}
 async function cargarApi(){
   const [oti,nc,vals,cier,cap]=await Promise.all([api('/api/apc/oti'),api('/api/apc/nc-mensual'),api('/api/apc/valores'),api('/api/apc/cierres'),api('/api/apc/capacitacion-resumen?anio=2026').catch(()=>null)]);
   if(!oti.length&&!vals.length){ msg('Conexión correcta, pero la base del Apéndice C está vacía. Corré la migración 002 y usá "Cargar datos iniciales a Neon".'); return false; }
@@ -367,12 +372,12 @@ $('seed').onclick=async()=>{
   try{
     msg('Cargando…');
     const snap=JSON.parse(SNAP_SERIE), ap=JSON.parse(SNAP_AP);
-    const r1=await api('/api/apc/oti',{method:'PUT',body:JSON.stringify({meses:snap.map(x=>({mes:x.m,oti_total:x.oti_total,oti_ent:x.oti_ent,atrasos:x.atrasos,fuente:'Carga inicial 10/10/2026'}))})});
+    const r1=await putPorTandas('/api/apc/oti','meses',snap.map(x=>({mes:x.m,oti_total:x.oti_total,oti_ent:x.oti_ent,atrasos:x.atrasos,fuente:'Carga inicial 10/10/2026'})),12);
     const valores=[];
     ap.forEach(g=>g.rows.forEach(r=>{ if(['quejas','devol','fallas','demoras'].includes(KEY[r.ind])) return;
       Object.entries(r.c).forEach(([i,v])=>{ const anual=(r.t==='pct'&&['sat_silver','sat_comp','proveedores','capacitacion'].includes(KEY[r.ind])); valores.push({indicador:KEY[r.ind],periodo:anual?'2026':'2026-'+String(Number(i)+1).padStart(2,'0'),valor:v,fuente:'Carga inicial 10/10/2026'}); }); }));
     ap.forEach(g=>g.rows.forEach(r=>{ const k=KEY[r.ind]; if(['scrap','eficiencia','setup','ausentismo'].includes(k)&&r.acc!=null) valores.push({indicador:k,periodo:'2026',valor:r.acc,fuente:'Acumulado ponderado, carga inicial 10/10/2026'}); }));
-    const r2=await api('/api/apc/valores',{method:'PUT',body:JSON.stringify({valores})});
+    const r2=await putPorTandas('/api/apc/valores','valores',valores,20);
     msg('Cargados '+r1.guardados+' meses de OTI y '+r2.guardados+' valores.'); await cargarApi();
   }catch(e){msg(e.message);}
 };
@@ -423,7 +428,7 @@ $('impFile').onchange=async ev=>{
   }catch(e){ $('impMsg').textContent=e.message; }
 };
 $('impSubir').onclick=async()=>{
-  try{ $('impMsg').textContent='Guardando…'; const r=await api('/api/apc/oti',{method:'PUT',body:JSON.stringify({meses:impMeses})});
+  try{ $('impMsg').textContent='Guardando…'; const r=await putPorTandas('/api/apc/oti','meses',impMeses,12);
     $('impMsg').textContent='Guardados '+r.guardados+' meses.'+(r.rechazados.length?' Rechazados (período cerrado): '+r.rechazados.map(x=>x.mes).join(', ')+'.':''); $('impSubir').style.display='none'; await cargarApi();
   }catch(e){ $('impMsg').textContent=e.message; }
 };
