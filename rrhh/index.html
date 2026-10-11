@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RRHH – Ausentismo</title>
+<title>RRHH – Silver Industrial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="a14.js"></script>
 <style>
 :root{
   color-scheme: light;
@@ -57,12 +59,35 @@ td small{display:block;color:var(--faint);font-size:11px}
 .msg.err{color:var(--off-fg)}.msg.okk{color:var(--ok-fg)}
 .hide{display:none!important}
 .tbl{overflow-x:auto}
+
+input[type=text],input[type=date],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;font-size:14px}
+textarea{min-height:64px;resize:vertical}
+label{display:block;font-size:12.5px;color:var(--dim);font-weight:600;margin-bottom:3px}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin-bottom:-4px}
+.tabs button{font:600 14px var(--fb);padding:9px 16px;border:1px solid transparent;border-bottom:0;background:none;color:var(--dim);cursor:pointer;border-radius:8px 8px 0 0}
+.tabs button.on{background:var(--surface);border-color:var(--border);color:var(--blue);margin-bottom:-1px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 14px}
+.span2{grid-column:1/-1}
+.kpi{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;margin:8px 0 4px}
+.kpi b{font:800 30px var(--fd)}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:600}
+.pill.ok{background:var(--ok-bg);color:var(--ok-fg)}.pill.off{background:var(--off-bg);color:var(--off-fg)}.pill.wip{background:var(--wip-bg);color:var(--wip-fg)}.pill.gr{background:var(--surface-2);color:var(--dim)}
+td.l,th.l{text-align:left}
+.btn.sm{padding:5px 10px;font-size:12.5px}
+.alist{max-height:340px;overflow:auto;border:1px solid var(--border);border-radius:8px}
+.alist .ar{display:grid;grid-template-columns:24px 1fr 76px minmax(0,1.1fr);gap:8px;align-items:center;padding:5px 8px;border-bottom:1px solid var(--border);font-size:13.5px}
+.alist .ar:last-child{border-bottom:0}.alist .ar.sel{background:var(--surface-2)}
+.alist select,.alist input[type=text]{padding:4px 6px;font-size:13px}
+details>summary{cursor:pointer;font-weight:600;font-size:16px}
+.warn{color:var(--wip-fg);background:var(--wip-bg);border-radius:8px;padding:8px 12px;font-size:13px;margin:8px 0}
+@media(max-width:560px){.alist .ar{grid-template-columns:24px 1fr 70px}.alist .ar input[type=text]{grid-column:2/-1}}
 footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);font-size:13px;text-align:center}
 </style>
 </head>
 <body>
 <header><div class="wrap">
-  <h1>Recursos Humanos – Ausentismo<small>Silver Industrial · Alimenta el Apéndice C del SGC (indicador de ausentismo, meta &lt; 5%)</small></h1>
+  <h1>Recursos Humanos<small>Silver Industrial · Alimenta el Apéndice C del SGC (ausentismo, meta &lt; 5% · capacitación, meta &gt; 90%)</small></h1>
   <span class="sp"></span>
   <button class="btn hide" id="salir">Salir</button>
 </div></header>
@@ -78,7 +103,10 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
     <p class="msg" id="loginMsg"></p>
   </section>
 
-  <section class="card hide" id="cargaC">
+  <nav class="tabs hide" id="tabs"><button id="tAus" class="on">Ausentismo</button><button id="tCap">Capacitación</button></nav>
+
+<div id="ausT" class="hide" style="display:grid;gap:16px">
+  <section class="card" id="cargaC">
     <h2>Cargar el ausentismo del mes</h2>
     <p class="note">Subí el "Informe mensual de ausentismo y retrasos" que ya armás (.xls o .xlsx). La página lo calcula en tu computadora: a la base solo viaja el total del mes (días ausentes y días laborables). <b>No se guardan nombres ni los días de cada persona.</b></p>
     <input type="file" id="file" accept=".xls,.xlsx">
@@ -87,7 +115,7 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
     <p class="msg" id="msg"></p>
   </section>
 
-  <section class="card hide" id="histC">
+  <section class="card" id="histC">
     <h2>Meses cargados</h2>
     <div class="tbl"><table id="hist"></table></div>
     <p class="note">Verde: cumple la meta (&lt; 5%). Rojo: la supera. Si cargás un mes de nuevo, reemplaza el anterior mientras el período no esté cerrado por Gestión de calidad.</p>
@@ -103,6 +131,87 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
     </ul>
     <p class="note">Procedimiento: Instructivo I.09 Rev. 012 (sección 5.2).</p>
   </section>
+</div>
+
+<div id="capT" class="hide" style="display:grid;gap:16px">
+  <section class="card">
+    <h2>Programa de capacitación (A.18)</h2>
+    <div class="row">
+      <label for="capAnio" style="margin:0">Año</label>
+      <select id="capAnio" style="width:auto"></select>
+      <span class="sp"></span>
+      <button class="btn pri" id="capNueva">+ Nueva capacitación</button>
+    </div>
+    <div class="kpi" id="capKpi"></div>
+    <div class="tbl"><table id="capTbl"></table></div>
+    <p class="note">Cumplimiento = capacitaciones cumplidas / programadas del año (las canceladas no cuentan). Meta &gt; 90%. Mientras el año está en curso el Apéndice C lo muestra como "en curso" (amarillo) y se define el 31/12.</p>
+    <p class="msg" id="capMsg"></p>
+  </section>
+
+  <section class="card hide" id="edC">
+    <h2 id="edTit">Capacitación</h2>
+    <div class="g2">
+      <div class="span2"><label>Tema</label><input type="text" id="e_tema"></div>
+      <div><label>Instructor / facilitador</label><input type="text" id="e_instructor"></div>
+      <div><label>Tipo</label><select id="e_tipo"><option value="">—</option><option>Interno</option><option>Externo</option></select></div>
+      <div><label>Fecha planificada</label><input type="date" id="e_fecha_plan"></div>
+      <div><label>o período (texto, ej. "Noviembre")</label><input type="text" id="e_periodo_plan"></div>
+      <div><label>Destinatarios / sector</label><input type="text" id="e_destinatarios"></div>
+      <div><label>Lugar de dictado</label><input type="text" id="e_lugar"></div>
+      <div><label>Estado actual</label><select id="e_estado"><option>Agendada</option><option>Cumplida</option><option>Reprogramada</option><option>Cancelada</option></select></div>
+      <div><label>Programada</label><select id="e_programada"><option value="1">Sí, estaba en el programa</option><option value="0">No programada (se registra, no cuenta en el %)</option></select></div>
+      <div class="span2"><label>Observaciones del programa</label><input type="text" id="e_observaciones"></div>
+    </div>
+    <h2 style="margin-top:16px">Registro de asistencia (A.14)</h2>
+    <div class="g2">
+      <div><label>Fecha en que se dictó</label><input type="date" id="e_fecha_real"></div>
+      <div><label>Duración (ej. "1,5 horas")</label><input type="text" id="e_duracion"></div>
+      <div class="span2"><label>Temas a desarrollar</label><textarea id="e_temas"></textarea></div>
+    </div>
+    <div class="row" style="margin:12px 0 6px"><b style="font-size:14px">Asistentes</b> <span class="note" id="aCnt" style="margin:0"></span><span class="sp"></span>
+      <input type="text" id="aq" placeholder="Buscar por nombre…" style="width:200px">
+      <button class="btn sm" id="aTodosS" type="button">Calificar a todos "S"</button></div>
+    <div class="alist" id="aList"></div>
+    <p class="note">Marcá quiénes asistieron y su calificación: S (satisfactorio), PS (poco satisfactorio), NS (no satisfactorio). La columna "Firma" del A.14 queda en blanco para que firme cada persona. Solo figura el personal activo; si falta alguien, agregalo abajo en "Personal".</p>
+    <h2 style="margin-top:16px">Evaluación de la efectividad</h2>
+    <div class="g2">
+      <div><label>Fecha programada para evaluar</label><input type="date" id="e_efect_fecha_programada"></div>
+      <div><label>Fecha real de evaluación</label><input type="date" id="e_efect_fecha_real"></div>
+      <div class="span2"><label>Evaluación</label><textarea id="e_efect_evaluacion"></textarea></div>
+      <div><label>Capacitación efectiva</label><select id="e_efect_efectiva"><option value="">Sin evaluar</option><option value="1">Sí</option><option value="0">No</option></select></div>
+      <div><label>Evaluador</label><input type="text" id="e_efect_evaluador"></div>
+      <div class="span2"><label>Acciones en caso de no efectividad</label><textarea id="e_efect_acciones"></textarea></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn pri" id="edGuardar">Guardar</button>
+      <button class="btn" id="edA14">Descargar A.14 (.docx)</button>
+      <button class="btn" id="edCerrar">Cerrar</button>
+    </div>
+    <p class="msg" id="edMsg"></p>
+  </section>
+
+  <section class="card">
+    <h2>Importar desde los Excel que ya tenés</h2>
+    <p class="note">Se leen en tu computadora y vas a ver una vista previa antes de guardar nada.</p>
+    <div class="row">
+      <button class="btn" id="impA18B">Programa A.18 (Excel)</button>
+      <button class="btn" id="impA26B">Matriz de capacitación A.26 (Excel)</button>
+      <input type="file" id="impA18F" accept=".xls,.xlsx,.xlsm" class="hide">
+      <input type="file" id="impA26F" accept=".xls,.xlsx,.xlsm" class="hide">
+    </div>
+    <div id="impBox" style="margin-top:12px"></div>
+  </section>
+
+  <section class="card">
+    <details id="perD"><summary>Personal (<span id="perN">0</span>)</summary>
+      <p class="note">Lista de personas que aparecen en el A.14. Se carga con el A.26 o a mano. Los inactivos dejan de ofrecerse al armar un registro de asistencia.</p>
+      <form id="perF" class="row" style="max-width:none"><input type="text" id="perLeg" placeholder="Nº Op" style="width:90px" inputmode="numeric" required><input type="text" id="perNom" placeholder="Apellido y nombre" style="flex:1;min-width:200px" required><button class="btn" type="submit">Agregar</button></form>
+      <div class="tbl" style="max-height:360px;overflow:auto;margin-top:8px"><table id="perT"></table></div>
+      <p class="msg" id="perMsg"></p>
+    </details>
+  </section>
+</div>
+
 </main>
 
 <footer><div class="wrap">Desarrollado por Mgter. Diego Ortiz — Líder de Mejora Continua | Consultor ISO · +54 9 11 4170-6692</div></footer>
@@ -119,7 +228,8 @@ async function api(path,opt={}){
   return d;
 }
 function entrar(on){
-  $('loginC').classList.toggle('hide',on);['cargaC','histC','salir'].forEach(i=>$(i).classList.toggle('hide',!on));
+  $('loginC').classList.toggle('hide',on);['tabs','salir'].forEach(i=>$(i).classList.toggle('hide',!on));
+  if(on)tab('aus');else{$('ausT').classList.add('hide');$('capT').classList.add('hide');S.cargado=false;}
 }
 function say(el,t,cls){el.textContent=t;el.className='msg'+(cls?' '+cls:'');}
 $('loginF').onsubmit=async ev=>{
@@ -183,6 +293,307 @@ $('guardar').onclick=async()=>{
     say($('msg'),'Listo: el ausentismo de '+dato.periodo+' quedó guardado.','okk'); $('guardar').classList.add('hide'); $('file').value=''; historial();
   }catch(e){say($('msg'),e.message,'err');}
 };
+
+/* ================= CAPACITACIÓN ================= */
+const AÑO=new Date().getFullYear();
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const iso10=v=>v?String(v).slice(0,10):'';
+const fD=v=>{const s=iso10(v);return s?s.split('-').reverse().join('/'):'';};
+const clean=t=>String(t??'').replace(/\s*\n\s*/g,', ').replace(/\s+/g,' ').trim();
+function serial2iso(n){return new Date(Math.round((n-25569)*86400000)).toISOString().slice(0,10);}
+function parseFecha(v){
+  if(typeof v==='number'&&v>20000&&v<80000) return serial2iso(v);
+  const s=String(v??'');
+  let m=s.match(/(\d{4})-(\d{2})-(\d{2})/); if(m) return m[0];
+  m=s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(m){let y=+m[3];if(y<100)y+=2000;const mo=+m[2],d=+m[1];if(mo>=1&&mo<=12&&d>=1&&d<=31&&y>1990)return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+  return '';
+}
+const S={anio:AÑO,caps:[],personal:[],cargado:false,edit:null,A:new Map()};
+const capMsg=(t,c)=>say($('capMsg'),t,c);
+
+function tab(n){
+  $('ausT').classList.toggle('hide',n!=='aus');$('capT').classList.toggle('hide',n!=='cap');
+  $('tAus').classList.toggle('on',n==='aus');$('tCap').classList.toggle('on',n==='cap');
+  if(n==='cap'&&!S.cargado) cargarCaps();
+}
+$('tAus').onclick=()=>tab('aus');$('tCap').onclick=()=>tab('cap');
+
+async function cargarPersonal(){S.personal=await api('/api/rrhh/personal');renderPersonal();}
+async function cargarCaps(){
+  try{
+    capMsg('Cargando…');
+    if(!$('capAnio').options.length){for(let y=AÑO+1;y>=2024;y--)$('capAnio').add(new Option(y,y));$('capAnio').value=S.anio;}
+    const [caps]=await Promise.all([api('/api/rrhh/capacitaciones?anio='+S.anio),cargarPersonal()]);
+    S.caps=caps;S.cargado=true;renderCaps();capMsg('');
+  }catch(e){capMsg(e.message+' (si es la primera vez: Gestión de calidad debe haber corrido la migración 003 en la base)','err');}
+}
+$('capAnio').onchange=()=>{S.anio=Number($('capAnio').value);cargarCaps();};
+
+function resumen(caps){
+  const prog=caps.filter(c=>c.programada&&c.estado!=='Cancelada'),cum=prog.filter(c=>c.estado==='Cumplida');
+  return {p:prog.length,c:cum.length,v:prog.length?cum.length/prog.length:null};
+}
+const pillE=e=>`<span class="pill ${e==='Cumplida'?'ok':e==='Cancelada'?'off':e==='Reprogramada'?'wip':'gr'}">${e}</span>`;
+function renderCaps(){
+  const r=resumen(S.caps),enCurso=S.anio>=AÑO;
+  const pct=r.v==null?'—':(r.v*100).toFixed(1).replace('.',',')+'%';
+  const est=r.v==null?'':enCurso?'<span class="pill wip">en curso</span>':(r.v>0.9?'<span class="pill ok">cumple la meta</span>':'<span class="pill off">no cumple la meta</span>');
+  $('capKpi').innerHTML=`<span><b>${r.c} / ${r.p}</b> cumplidas</span><span><b>${pct}</b> ${est}</span><span class="note">meta &gt; 90%</span>`;
+  $('capTbl').innerHTML='<thead><tr><th class="l">Tema</th><th class="l">Fecha</th><th class="l">Estado</th><th>Asist.</th><th></th></tr></thead><tbody>'+
+   (S.caps.length?S.caps.map(c=>`<tr><td class="l">${esc(c.tema)}${c.programada?'':' <span class="pill gr">no programada</span>'}<small>${esc(c.instructor||'')}</small></td><td class="l">${fD(c.fecha_real)||fD(c.fecha_plan)||esc(c.periodo_plan||'')||'—'}${c.fecha_real?'':'<small>planificada</small>'}</td><td class="l">${pillE(c.estado)}</td><td>${c.asistentes||0}</td><td style="white-space:nowrap"><button class="btn sm" data-ed="${c.id}">Abrir</button> <button class="btn sm" data-a14="${c.id}">A.14</button></td></tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--faint)">No hay capacitaciones cargadas en '+S.anio+'. Creá una o importá el A.18.</td></tr>')+'</tbody>';
+}
+$('capTbl').onclick=async ev=>{
+  const b=ev.target.closest('button');if(!b)return;
+  try{
+    if(b.dataset.ed) abrir(await api('/api/rrhh/capacitaciones/'+b.dataset.ed));
+    if(b.dataset.a14){capMsg('Generando A.14…');const d=await api('/api/rrhh/capacitaciones/'+b.dataset.a14);await bajarA14(d,d.asistentes);capMsg('');}
+  }catch(e){capMsg(e.message,'err');}
+};
+$('capNueva').onclick=()=>abrir({id:null,anio:S.anio,programada:true,estado:'Agendada',asistentes:[]});
+
+/* ---- editor ---- */
+const CAMPOS=['tema','instructor','tipo','fecha_plan','periodo_plan','destinatarios','lugar','estado','observaciones','fecha_real','duracion','temas','efect_fecha_programada','efect_fecha_real','efect_evaluacion','efect_evaluador','efect_acciones'];
+const FECHAS=new Set(['fecha_plan','fecha_real','efect_fecha_programada','efect_fecha_real']);
+function abrir(c){
+  S.edit=c;
+  CAMPOS.forEach(k=>{$('e_'+k).value=FECHAS.has(k)?iso10(c[k]):(c[k]??'');});
+  $('e_programada').value=c.programada===false?'0':'1';
+  $('e_efect_efectiva').value=c.efect_efectiva===true?'1':c.efect_efectiva===false?'0':'';
+  S.A=new Map((c.asistentes||[]).map(a=>[a.legajo,{cal:a.calificacion||'',obs:a.observaciones||''}]));
+  $('aq').value='';$('edTit').textContent=c.id?'Capacitación · '+(c.tema||''):'Nueva capacitación';
+  $('edC').classList.remove('hide');$('edMsg').textContent='';renderAsis();
+  $('edC').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('edCerrar').onclick=()=>{$('edC').classList.add('hide');S.edit=null;};
+function leerEd(){
+  const o={id:S.edit&&S.edit.id||undefined,anio:S.edit?.anio||S.anio};
+  CAMPOS.forEach(k=>{o[k]=$('e_'+k).value.trim()||null;});
+  o.programada=$('e_programada').value==='1';
+  const ef=$('e_efect_efectiva').value;o.efect_efectiva=ef===''?null:ef==='1';
+  return o;
+}
+function asistentesLista(){
+  const pm=new Map(S.personal.map(p=>[p.legajo,p.nombre]));
+  return [...S.A.entries()].map(([legajo,v])=>({legajo,nombre:pm.get(legajo)||('Nº '+legajo),calificacion:v.cal||null,observaciones:v.obs||''}));
+}
+function renderAsis(){
+  const q=norm($('aq').value),ord=S.personal.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+  const vis=ord.filter(p=>(p.activo||S.A.has(p.legajo))&&(!q||norm(p.nombre).includes(q)||String(p.legajo)===q));
+  $('aList').innerHTML=vis.length?vis.map(p=>{const a=S.A.get(p.legajo);return `<div class="ar${a?' sel':''}" data-l="${p.legajo}"><input type="checkbox" ${a?'checked':''}><span>${esc(p.nombre)}${p.activo?'':' <span class="pill gr">inactivo</span>'}</span>${a?`<select data-f="cal"><option value="">—</option>${['S','PS','NS'].map(x=>`<option${a.cal===x?' selected':''}>${x}</option>`).join('')}</select><input type="text" data-f="obs" placeholder="Observaciones" value="${esc(a.obs)}">`:'<span></span><span></span>'}</div>`;}).join(''):'<div class="note" style="padding:12px">No hay personal cargado. Importá el A.26 o agregalo abajo en "Personal".</div>';
+  $('aCnt').textContent=S.A.size+' asistentes';
+}
+$('aq').oninput=renderAsis;
+$('aList').onchange=ev=>{
+  const row=ev.target.closest('.ar');if(!row)return;const l=Number(row.dataset.l);
+  if(ev.target.type==='checkbox'){ev.target.checked?S.A.set(l,{cal:'',obs:''}):S.A.delete(l);renderAsis();}
+  else if(ev.target.dataset.f==='cal')S.A.get(l).cal=ev.target.value;
+};
+$('aList').oninput=ev=>{const row=ev.target.closest('.ar');if(row&&ev.target.dataset.f==='obs')S.A.get(Number(row.dataset.l)).obs=ev.target.value;};
+$('aTodosS').onclick=()=>{S.A.forEach(v=>{if(!v.cal)v.cal='S';});renderAsis();};
+
+$('edGuardar').onclick=async()=>{
+  const m=$('edMsg');
+  try{
+    const o=leerEd();
+    if(!o.tema) throw new Error('Falta el tema.');
+    if(o.estado==='Cumplida'&&!o.fecha_real) throw new Error('Para marcarla "Cumplida" cargá la fecha en que se dictó.');
+    if(o.estado==='Cumplida'&&!S.A.size&&!confirm('No marcaste asistentes. ¿Guardar igual?')) return;
+    say(m,'Guardando…');
+    const cap=await api('/api/rrhh/capacitaciones',{method:'PUT',body:JSON.stringify(o)});
+    await api('/api/rrhh/capacitaciones/'+cap.id+'/asistencia',{method:'PUT',body:JSON.stringify({asistentes:asistentesLista()})});
+    S.edit={...S.edit,...cap,asistentes:asistentesLista()};
+    say(m,'Guardado.','okk');
+    S.caps=await api('/api/rrhh/capacitaciones?anio='+S.anio);renderCaps();
+  }catch(e){say(m,e.message,'err');}
+};
+$('edA14').onclick=async()=>{
+  try{say($('edMsg'),'Generando A.14…');const o=leerEd();if(!o.tema)throw new Error('Falta el tema.');
+    await bajarA14(o,asistentesLista());say($('edMsg'),'Listo: revisá el archivo descargado e imprimilo.','okk');}
+  catch(e){say($('edMsg'),e.message,'err');}
+};
+
+async function bajarA14(c,asistentes){
+  if(typeof JSZip==='undefined') throw new Error('No se pudo cargar la librería de Word. Revisá la conexión a internet.');
+  const r=await fetch('A14.docx');if(!r.ok)throw new Error('No se encontró la plantilla A14.docx');
+  const blob=await llenarA14(await r.arrayBuffer(),{
+    fecha_real:iso10(c.fecha_real),duracion:c.duracion,temas:c.temas,
+    asistentes:(asistentes||[]).map(a=>({nombre:a.nombre,calificacion:a.calificacion,observaciones:a.observaciones})),
+    efect_fecha_programada:iso10(c.efect_fecha_programada),efect_evaluacion:c.efect_evaluacion,
+    efect_efectiva:typeof c.efect_efectiva==='boolean'?c.efect_efectiva:null,efect_fecha_real:iso10(c.efect_fecha_real),efect_acciones:c.efect_acciones});
+  const nom=('A.14 '+(iso10(c.fecha_real)||'sin fecha')+' '+String(c.tema||'').replace(/[\\/:*?"<>|\n]/g,' ').replace(/\s+/g,' ').trim().slice(0,60)).trim()+'.docx';
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nom;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
+}
+
+/* ---- personal ---- */
+function renderPersonal(){
+  $('perN').textContent=S.personal.filter(p=>p.activo).length+' activos de '+S.personal.length;
+  $('perT').innerHTML='<thead><tr><th class="l">Nº Op</th><th class="l">Nombre</th><th>Activo</th></tr></thead><tbody>'+S.personal.map(p=>`<tr><td class="l">${p.legajo}</td><td class="l">${esc(p.nombre)}</td><td><input type="checkbox" data-l="${p.legajo}" ${p.activo?'checked':''}></td></tr>`).join('')+'</tbody>';
+}
+$('perT').onchange=async ev=>{
+  const l=Number(ev.target.dataset.l),p=S.personal.find(x=>x.legajo===l);if(!p)return;p.activo=ev.target.checked;
+  try{await api('/api/rrhh/personal',{method:'PUT',body:JSON.stringify({personal:[p]})});renderPersonal();}catch(e){say($('perMsg'),e.message,'err');}
+};
+$('perF').onsubmit=async ev=>{
+  ev.preventDefault();const legajo=Number($('perLeg').value),nombre=clean($('perNom').value);
+  try{if(!Number.isInteger(legajo)||legajo<=0)throw new Error('El Nº Op debe ser un número.');
+    await api('/api/rrhh/personal',{method:'PUT',body:JSON.stringify({personal:[{legajo,nombre,activo:true}]})});
+    $('perLeg').value='';$('perNom').value='';await cargarPersonal();if(!$('edC').classList.contains('hide'))renderAsis();say($('perMsg'),'Agregado.','okk');}
+  catch(e){say($('perMsg'),e.message,'err');}
+};
+
+/* ---- importar A.18 ---- */
+function filasHoja(ws){const r=XLSX.utils.decode_range(ws['!ref']||'A1');r.s.r=0;r.s.c=0;return XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',range:r});}
+const leerLibro=async f=>{if(typeof XLSX==='undefined')throw new Error('No se pudo cargar el lector de Excel.');return XLSX.read(await f.arrayBuffer(),{});};
+const keyCap=c=>norm(c.tema)+'|'+(iso10(c.fecha_plan)||norm(c.periodo_plan||''));
+function estadoA18(t){
+  const u=norm(t);
+  if(!u) return 'Agendada';
+  if(/NO CUMPL/.test(u)) return 'Agendada';
+  if(/REPROGRAM|PENDIENTE/.test(u)) return 'Reprogramada';
+  if(/CANCEL|SUSPEND/.test(u)) return 'Cancelada';
+  if(/CUMPL|COMPLET|REALIZ|BRINDAD/.test(u)) return 'Cumplida';
+  return 'Agendada';
+}
+function filasA18(wb,name,anio){
+  const rows=filasHoja(wb.Sheets[name]);
+  let h=rows.findIndex(r=>/^TIPO DE CAPACITACION/.test(norm(r[1])));if(h<0)h=1;
+  const out=[];let declB=null,declP=null;
+  for(let i=h+1;i<rows.length;i++){
+    const r=rows[i],t=clean(r[1]),u=norm(t);if(!t)continue;
+    if(u==='BRINDADAS'){declB=Number(r[2]);continue;}if(u==='PROGRAMADAS'){declP=Number(r[2]);continue;}
+    if(/^(CUPLIMIENTO|CUMPLIMIENTO|META|A LA FECHA)$/.test(u)||!(clean(r[2])||clean(r[8])||r[5]))continue;
+    const interno=!!clean(r[3]),externo=!!clean(r[4]);
+    const fp=parseFecha(r[5]),estado=estadoA18(r[8]);
+    out.push({anio,tema:t,instructor:clean(r[2])||null,tipo:interno&&!externo?'Interno':externo&&!interno?'Externo':null,
+      fecha_plan:fp||null,periodo_plan:fp?null:clean(r[5])||null,destinatarios:clean(r[6])||null,lugar:clean(r[7])||null,
+      estado,programada:true,fecha_real:estado==='Cumplida'?(parseFecha(r[9])||null):null,observaciones:clean(r[10])||null});
+  }
+  return {filas:out,declB,declP};
+}
+let imp18=null;
+$('impA18B').onclick=()=>$('impA18F').click();
+$('impA18F').onchange=async ev=>{
+  const f=ev.target.files[0];if(!f)return;const box=$('impBox');
+  try{
+    box.innerHTML='Leyendo…';const wb=await leerLibro(f);
+    const hojas=wb.SheetNames.map(n=>({n,m:n.match(/^Registros?\s*(\d{4})$/i)})).filter(x=>x.m).map(x=>({n:x.n,anio:+x.m[1]})).filter(x=>x.anio>=2020);
+    if(!hojas.length)throw new Error('No encontré hojas "Registro AAAA". ¿Es el A.18?');
+    imp18={wb,hojas};
+    box.innerHTML=`<div class="row"><label style="margin:0">Hoja a importar</label><select id="i18Hoja" style="width:auto">${hojas.map(h=>`<option value="${h.n}">${h.n}</option>`).join('')}</select></div><div id="i18Prev"></div>`;
+    const sel=hojas.find(h=>h.anio===AÑO)||hojas[0];$('i18Hoja').value=sel.n;$('i18Hoja').onchange=prev18;prev18();
+  }catch(e){box.innerHTML='<p class="msg err">'+esc(e.message)+'</p>';}
+  ev.target.value='';
+};
+async function prev18(){
+  const hoja=imp18.hojas.find(h=>h.n===$('i18Hoja').value),{filas,declB,declP}=filasA18(imp18.wb,hoja.n,hoja.anio);
+  const ex=await api('/api/rrhh/capacitaciones?anio='+hoja.anio),mx=new Map(ex.map(c=>[keyCap(c),c]));
+  imp18.sel={hoja,filas,mx};
+  const r=resumen(filas),fuera=filas.filter(f=>f.fecha_plan&&+f.fecha_plan.slice(0,4)!==hoja.anio),sinF=filas.filter(f=>f.estado==='Cumplida'&&!f.fecha_real);
+  $('i18Prev').innerHTML=`<div class="kpi"><span><b>${r.c} / ${r.p}</b> cumplidas</span><span><b>${r.v==null?'—':(r.v*100).toFixed(1).replace('.',',')+'%'}</b></span>${declP!=null?`<span class="note">La hoja declara ${declB} / ${declP}</span>`:''}</div>`+
+   (fuera.length?`<p class="warn">${fuera.length} fila(s) tienen fecha planificada de otro año (${fuera.map(f=>esc(f.tema)+' · '+fD(f.fecha_plan)).join('; ')}). Se importan en ${hoja.anio} porque están en esa hoja; si no corresponden, corregí la fecha en el Excel o la capacitación acá.</p>`:'')+
+   (sinF.length?`<p class="note">${sinF.length} cumplida(s) sin fecha de dictado en el A.18. Al importar el A.26 la fecha se completa desde la matriz.</p>`:'')+
+   `<div class="tbl"><table><thead><tr><th class="l">Tema</th><th class="l">Planificada</th><th class="l">Estado</th><th class="l">Fecha dictado</th><th class="l">Se va a</th></tr></thead><tbody>${filas.map(f=>`<tr><td class="l">${esc(f.tema)}<small>${esc(f.instructor||'')}</small></td><td class="l">${fD(f.fecha_plan)||esc(f.periodo_plan||'')}</td><td class="l">${pillE(f.estado)}</td><td class="l">${fD(f.fecha_real)||'—'}</td><td class="l">${imp18.sel.mx.has(keyCap(f))?'actualizar':'crear'}</td></tr>`).join('')}</tbody></table></div>
+   <div class="row" style="margin-top:10px"><button class="btn pri" id="i18Ok">Importar ${filas.length} capacitaciones a ${hoja.anio}</button></div><p class="msg" id="i18Msg"></p>`;
+  $('i18Ok').onclick=guardar18;
+}
+async function guardar18(){
+  const {hoja,filas,mx}=imp18.sel,m=$('i18Msg');let n=0;
+  try{
+    for(const f of filas){
+      const prev=mx.get(keyCap(f)),body=prev?{...prev,...Object.fromEntries(Object.entries(f).filter(([k,v])=>v!==null&&v!==''))}:{...f};
+      ['fecha_plan','fecha_real','efect_fecha_programada','efect_fecha_real'].forEach(k=>{if(body[k])body[k]=iso10(body[k]);});
+      delete body.asistentes;delete body.actualizado_en;delete body.actualizado_por;
+      await api('/api/rrhh/capacitaciones',{method:'PUT',body:JSON.stringify(body)});n++;say(m,'Guardando '+n+' de '+filas.length+'…');
+    }
+    say(m,'Listo: '+n+' capacitaciones importadas.','okk');
+    S.anio=hoja.anio;$('capAnio').value=S.anio;S.caps=await api('/api/rrhh/capacitaciones?anio='+S.anio);renderCaps();
+  }catch(e){say(m,'Se detuvo en la '+(n+1)+': '+e.message,'err');}
+}
+
+/* ---- importar A.26 ---- */
+const STOP=new Set(['DE','LA','EL','LOS','LAS','Y','EN','PARA','CON','POR','DEL','UNA','QUE','SOBRE','USO','PERSONAL']);
+const tokens=s=>new Set(norm(s).split(/[^A-Z0-9]+/).filter(w=>w.length>3&&!STOP.has(w)));
+function scoreCap(col,c){
+  const a=tokens(col.titulo),b=tokens(c.tema);let s=0;a.forEach(w=>{if(b.has(w))s++;});
+  if(col.fecha&&iso10(c.fecha_real)===col.fecha)s+=3;
+  else if(col.fecha&&(iso10(c.fecha_plan)||'').slice(0,7)===col.fecha.slice(0,7))s+=1;
+  return s;
+}
+let imp26=null;
+$('impA26B').onclick=()=>$('impA26F').click();
+$('impA26F').onchange=async ev=>{
+  const f=ev.target.files[0];if(!f)return;const box=$('impBox');
+  try{
+    box.innerHTML='Leyendo…';const wb=await leerLibro(f);
+    const nm=wb.SheetNames.find(n=>/^vigente$/i.test(n))||wb.SheetNames[0];
+    const rows=filasHoja(wb.Sheets[nm]);
+    const hi=rows.findIndex(r=>/^N.?\s*OP$/.test(norm(r[0]))&&/PERSONAL/.test(norm(r[1])));
+    if(hi<0)throw new Error('No encontré el encabezado "Nº Op / PERSONAL". ¿Es el A.26?');
+    const fechas=rows[hi-1]||[],cols=[];
+    for(let j=2;j<rows[hi].length;j++){if(!clean(rows[hi][j]))continue;cols.push({j,titulo:clean(rows[hi][j]),fecha:parseFecha(fechas[j])});}
+    const pers=[];
+    for(let i=hi+1;i<rows.length;i++){
+      const r=rows[i],legajo=Number(r[0]),nombre=clean(r[1]);if(!Number.isInteger(legajo)||legajo<=0||!nombre)continue;
+      const marcas=cols.filter(c=>/^x$/i.test(String(r[c.j]).trim())).map(c=>c.j);
+      pers.push({legajo,nombre,marcas});
+    }
+    if(!pers.length)throw new Error('No encontré personal en la matriz.');
+    cols.forEach(c=>{c.legajos=pers.filter(p=>p.marcas.includes(c.j)).map(p=>p.legajo);});
+    const reciente=new Set(cols.filter(c=>c.fecha&&+c.fecha.slice(0,4)>=AÑO-1).map(c=>c.j));
+    pers.forEach(p=>{p.activoH=p.marcas.some(j=>reciente.has(j));});
+    const anios=[...new Set(cols.filter(c=>c.fecha&&+c.fecha.slice(0,4)>=2024).map(c=>+c.fecha.slice(0,4)))].sort((a,b)=>b-a);
+    if(!anios.length)throw new Error('La matriz no tiene capacitaciones desde 2024.');
+    imp26={pers,cols,anios};
+    box.innerHTML=`<div class="row"><label style="margin:0">Año de capacitaciones a importar</label><select id="i26Anio" style="width:auto">${anios.map(a=>`<option>${a}</option>`).join('')}</select></div><div id="i26Prev"></div>`;
+    $('i26Anio').value=anios.includes(AÑO)?AÑO:anios[0];$('i26Anio').onchange=prev26;await prev26();
+  }catch(e){box.innerHTML='<p class="msg err">'+esc(e.message)+'</p>';}
+  ev.target.value='';
+};
+async function prev26(){
+  const anio=Number($('i26Anio').value),{pers,cols}=imp26;
+  const caps=await api('/api/rrhh/capacitaciones?anio='+anio),pe=await api('/api/rrhh/personal'),pex=new Map(pe.map(p=>[p.legajo,p]));
+  const cc=cols.filter(c=>c.fecha&&+c.fecha.slice(0,4)===anio);
+  imp26.sel={anio,caps,pex,cc};
+  cc.forEach(c=>{c.auto='';if(!c.legajos.length)return;let best=null,bs=0;caps.forEach(k=>{const s=scoreCap(c,k);if(s>bs){bs=s;best=k;}});c.auto=bs>=2?best.id:'';});
+  const nuevos=pers.filter(p=>!pex.has(p.legajo)).length,act=pers.filter(p=>pex.has(p.legajo)?pex.get(p.legajo).activo:p.activoH).length;
+  const opt=c=>`<option value="">— No importar —</option><option value="new"${''}>＋ Crear capacitación nueva</option>`+caps.map(k=>`<option value="${k.id}"${String(k.id)===String(c.auto)?' selected':''}>${esc((fD(k.fecha_real)||fD(k.fecha_plan)||k.periodo_plan||'s/f')+' · '+k.tema)}</option>`).join('');
+  $('i26Prev').innerHTML=`<p class="note"><b>Personal:</b> ${pers.length} personas en la matriz (${nuevos} nuevas). Se consideran activas las que asistieron a alguna capacitación desde ${AÑO-1} (${act} activas); las ya cargadas conservan su estado. Podés ajustarlo después en "Personal".</p>
+   <div class="tbl"><table><thead><tr><th class="l">Columna del A.26</th><th>Asist.</th><th class="l">Va a la capacitación</th></tr></thead><tbody>${cc.map((c,i)=>`<tr><td class="l">${esc(c.titulo)}<small>${fD(c.fecha)}</small></td><td>${c.legajos.length}</td><td class="l">${c.legajos.length?'':'<span class="note">sin asistentes todavía</span> '}<select data-c="${i}">${opt(c)}</select></td></tr>`).join('')}</tbody></table></div>
+   ${caps.length?'':`<p class="warn">No hay capacitaciones cargadas en ${anio}. Importá primero el A.18 de ese año (o elegí "Crear capacitación nueva").</p>`}
+   <p class="note">Las calificaciones (S/PS/NS) y las observaciones que ya tenga cada registro se conservan; si la capacitación no tenía fecha de dictado, se completa con la fecha de la columna. Quienes ya figuraban como asistentes y no están marcados en la matriz se mantienen.</p>
+   <div class="row" style="margin-top:10px"><button class="btn pri" id="i26Ok">Importar personal y asistencia</button></div><p class="msg" id="i26Msg"></p>`;
+  $('i26Ok').onclick=guardar26;
+}
+async function guardar26(){
+  const {pers}=imp26,{anio,caps,pex,cc}=imp26.sel,m=$('i26Msg');
+  try{
+    say(m,'Guardando personal…');
+    const lista=pers.map(p=>({legajo:p.legajo,nombre:p.nombre,activo:pex.has(p.legajo)?pex.get(p.legajo).activo:p.activoH}));
+    for(let i=0;i<lista.length;i+=25)await api('/api/rrhh/personal',{method:'PUT',body:JSON.stringify({personal:lista.slice(i,i+25)})});
+    const dest=new Map(); // id -> {fecha, legajos:Set}
+    for(const [i,c] of cc.entries()){
+      let v=document.querySelector(`#i26Prev select[data-c="${i}"]`).value;if(!v||!c.legajos.length)continue;
+      if(v==='new'){
+        const base=clean(c.titulo),cap=await api('/api/rrhh/capacitaciones',{method:'PUT',body:JSON.stringify({anio,tema:base,fecha_plan:c.fecha,fecha_real:c.fecha,estado:'Cumplida',programada:false,observaciones:'Creada al importar el A.26'})});
+        caps.push(cap);v=String(cap.id);
+      }
+      const d=dest.get(v)||{fecha:c.fecha,legajos:new Set()};c.legajos.forEach(l=>d.legajos.add(l));dest.set(v,d);
+    }
+    let n=0;
+    for(const [id,d] of dest){
+      say(m,'Guardando asistencia '+(++n)+' de '+dest.size+'…');
+      const det=await api('/api/rrhh/capacitaciones/'+id),prev=new Map(det.asistentes.map(a=>[a.legajo,a]));
+      d.legajos.forEach(l=>{if(!prev.has(l))prev.set(l,{legajo:l,calificacion:null,observaciones:null});});
+      await api('/api/rrhh/capacitaciones/'+id+'/asistencia',{method:'PUT',body:JSON.stringify({asistentes:[...prev.values()].map(a=>({legajo:a.legajo,calificacion:a.calificacion,observaciones:a.observaciones}))})});
+      if(!det.fecha_real&&d.fecha){const b={...det};delete b.asistentes;delete b.actualizado_en;delete b.actualizado_por;['fecha_plan','fecha_real','efect_fecha_programada','efect_fecha_real'].forEach(k=>{if(b[k])b[k]=iso10(b[k]);});b.fecha_real=d.fecha;await api('/api/rrhh/capacitaciones',{method:'PUT',body:JSON.stringify(b)});}
+    }
+    say(m,'Listo: '+lista.length+' personas y la asistencia de '+dest.size+' capacitaciones.','okk');
+    S.anio=anio;$('capAnio').value=anio;await cargarPersonal();S.caps=await api('/api/rrhh/capacitaciones?anio='+anio);renderCaps();
+  }catch(e){say(m,e.message,'err');}
+}
+
 if(tok.get()){entrar(true);historial();}
 </script>
 </body>
