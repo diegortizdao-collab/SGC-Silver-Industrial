@@ -102,6 +102,7 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <header class="top">
@@ -168,9 +169,14 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
           <button class="btn" id="salir">Desconectar</button>
         </div>
         <p class="note" id="connMsg"></p></div>
+      <div class="card" id="impCard"><h3>Importar "Datos para atrasos de entrega"</h3>
+        <p class="note" style="margin:4px 0 8px">Subí el .xlsx. Se calcula en tu navegador: OTI pactadas, entregadas (con fecha enviada) y atrasos por mes de entrega pactada. Antes de guardar se muestra la comparación con lo que hay en Neon.</p>
+        <input type="file" id="impFile" accept=".xlsx,.xls" style="font:inherit;font-size:13px">
+        <div id="impOut" style="margin-top:10px"></div>
+        <button class="btn pri" id="impSubir" style="display:none;margin-top:8px">Guardar en Neon</button>
+        <p class="note" id="impMsg"></p></div>
       <div class="card"><h3>Pendiente</h3>
         <ul class="clean">
-          <li>Importador del archivo "Datos para atrasos de entrega".</li>
           <li>Carga mensual de ausentismo desde RRHH.</li>
           <li>Cargar en Q.21 las NC de junio a octubre.</li>
         </ul></div>
@@ -363,6 +369,53 @@ $('seed').onclick=async()=>{
 $('cerrar').onclick=async()=>{
   const p=$('cPer').value.trim(); if(!p){msg('Indicá el período (2026-08 o 2025).');return;}
   try{await api('/api/apc/cierres',{method:'POST',body:JSON.stringify({periodo:p,cerrar:true})}); msg('Período '+p+' cerrado. Ya no admite cambios.'); await cargarApi();}catch(e){msg(e.message);}
+};
+
+// ---------------- Importador de OTI ----------------
+let impMeses=null;
+const normH=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+const aFecha=v=>{ if(v instanceof Date&&!isNaN(v)) return v; if(typeof v==='number'){return new Date(Math.round((v-25569)*86400000));} if(typeof v==='string'&&v.trim()){const d=new Date(v.trim());return isNaN(d)?null:d;} return null; };
+$('impFile').onchange=async ev=>{
+  const f=ev.target.files[0]; if(!f) return; $('impMsg').textContent='Leyendo…'; $('impOut').innerHTML=''; $('impSubir').style.display='none'; impMeses=null;
+  try{
+    if(typeof XLSX==='undefined') throw new Error('No se pudo cargar el lector de Excel (sin conexión a cdnjs).');
+    const wb=XLSX.read(await f.arrayBuffer(),{cellDates:true});
+    let filas=null,iPact,iEnv,iOti;
+    for(const nombre of wb.SheetNames){
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[nombre],{header:1,raw:true,defval:null});
+      for(let h=0;h<Math.min(rows.length,15);h++){
+        const hd=rows[h].map(normH); const a=hd.indexOf('FECHA DE ENTREGA'), b=hd.indexOf('FECHA ENVIADA');
+        if(a>=0&&b>=0){ iPact=a; iEnv=b; iOti=hd.findIndex(x=>x.startsWith('N')&&x.includes('OTI')); filas=rows.slice(h+1); break; }
+      }
+      if(filas) break;
+    }
+    if(!filas) throw new Error('No encontré las columnas "FECHA DE ENTREGA" y "FECHA ENVIADA" en el archivo.');
+    const hoy=new Date(); const mesHoy=hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0');
+    const por={}; let sinFecha=0,fuera=0,vistas=new Set(),dup=0; const pend={};
+    filas.forEach(r=>{
+      const pact=aFecha(r[iPact]); if(!pact){ if(r.some(x=>x!=null&&x!=='')) sinFecha++; return; }
+      if(iOti>=0&&r[iOti]!=null){ const k=String(r[iOti]); if(vistas.has(k)) dup++; vistas.add(k); }
+      const m=pact.getFullYear()+'-'+String(pact.getMonth()+1).padStart(2,'0');
+      if(m<'2023-01'||m>mesHoy){ fuera++; return; }
+      const env=aFecha(r[iEnv]); const o=por[m]||(por[m]={mes:m,oti_total:0,oti_ent:0,atrasos:0});
+      o.oti_total++;
+      if(env){ o.oti_ent++; if(env>pact) o.atrasos++; }
+      else if(pact<hoy){ pend[m]=(pend[m]||0)+1; }
+    });
+    impMeses=Object.values(por).sort((a,b)=>a.mes<b.mes?-1:1).map(x=>({...x,fuente:'Importado '+f.name+' '+hoy.toISOString().slice(0,10)}));
+    let actuales={}; try{ if(store.get()) (await api('/api/apc/oti')).forEach(x=>actuales[x.mes]=x); }catch{}
+    const dif=impMeses.filter(x=>{const a=actuales[x.mes]; return !a||a.oti_total!==x.oti_total||a.oti_ent!==x.oti_ent||a.atrasos!==x.atrasos;});
+    const conectado=!!store.get();
+    $('impOut').innerHTML='<div class="sheet-wrap" style="max-height:260px;overflow:auto"><table class="ser"><thead><tr><th>Mes</th><th>Pactadas</th><th>Entregadas</th><th>Atrasos</th><th>Sin remito vencidas</th><th>Neon</th></tr></thead><tbody>'+
+      impMeses.slice(-18).map(x=>{const a=actuales[x.mes];const est=!conectado?'—':!a?'nuevo':(a.oti_total===x.oti_total&&a.oti_ent===x.oti_ent&&a.atrasos===x.atrasos?'igual':'cambia');return `<tr><td>${x.mes}</td><td>${x.oti_total}</td><td>${x.oti_ent}</td><td>${x.atrasos}</td><td>${pend[x.mes]||0}</td><td>${est}</td></tr>`;}).join('')+'</tbody></table></div>';
+    $('impMsg').textContent=impMeses.length+' meses calculados (se muestran los últimos 18). '+(conectado?dif.length+' con diferencias respecto de Neon. ':'Conectate para guardar. ')+(fuera?fuera+' filas con fecha pactada fuera de 2023–mes actual se ignoraron. ':'')+(sinFecha?sinFecha+' filas sin fecha pactada. ':'')+(dup?dup+' números de OTI repetidos: revisá el archivo.':'');
+    if(conectado&&dif.length){ impMeses=dif; $('impSubir').style.display='inline-block'; $('impSubir').textContent='Guardar '+dif.length+' meses en Neon'; }
+  }catch(e){ $('impMsg').textContent=e.message; }
+};
+$('impSubir').onclick=async()=>{
+  try{ $('impMsg').textContent='Guardando…'; const r=await api('/api/apc/oti',{method:'PUT',body:JSON.stringify({meses:impMeses})});
+    $('impMsg').textContent='Guardados '+r.guardados+' meses.'+(r.rechazados.length?' Rechazados (período cerrado): '+r.rechazados.map(x=>x.mes).join(', ')+'.':''); $('impSubir').style.display='none'; await cargarApi();
+  }catch(e){ $('impMsg').textContent=e.message; }
 };
 if(store.get()){ modoConectado(true,'(sesión activa)'); cargarApi().catch(e=>{modoConectado(false);msg(e.message);}); }
 </script>
