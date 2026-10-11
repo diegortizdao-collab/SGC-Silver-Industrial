@@ -305,6 +305,13 @@
   :root[data-theme="dark"] .obj-tile.is-ok .obj-delta{ color: #6EE0B4; }
   .obj-tile.is-ok{ border-left-color: var(--ok, #1FA97A); }
   .obj-tile.is-off{ border-left-color: var(--red); }
+  .obj-tile.is-wip{ border-left-color:#E0A800; }
+  .obj-tile.is-wip .obj-delta{ color:#9C5700; }
+  .obj-tile.is-wip .obj-status{ color:#9C5700; background:#FFEB9C; }
+  .og-pill.wip{ color:#9C5700; background:#FFEB9C; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .obj-tile.is-wip .obj-delta,:root:not([data-theme="light"]) .obj-tile.is-wip .obj-status,:root:not([data-theme="light"]) .og-pill.wip{ color:#F2CF6B; } :root:not([data-theme="light"]) .obj-tile.is-wip .obj-status,:root:not([data-theme="light"]) .og-pill.wip{ background:#3A2F10; } }
+  :root[data-theme="dark"] .obj-tile.is-wip .obj-delta,:root[data-theme="dark"] .obj-tile.is-wip .obj-status,:root[data-theme="dark"] .og-pill.wip{ color:#F2CF6B; }
+  :root[data-theme="dark"] .obj-tile.is-wip .obj-status,:root[data-theme="dark"] .og-pill.wip{ background:#3A2F10; }
   .obj-tile .obj-label{ font-size: 12.5px; color: var(--text-dim); line-height: 1.3; min-height: 32px; }
   .obj-tile .obj-real{ font-family: var(--font-mono); font-size: 24px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
   .obj-tile .obj-meta-row{ display:flex; align-items:center; justify-content: space-between; gap: 8px; }
@@ -459,7 +466,7 @@
     </div>
     <div class="section-head">
       <h2><span class="idx">01</span> Objetivos anuales de calidad</h2>
-      <span class="hint">Apéndice C · Rev. 16 · Meta vigente vs. real 2026 · Act. Set. 2026</span>
+      <span class="hint">Apéndice C · Rev. 17 · Meta vigente vs. real 2026 (acum. ene–sep) · Act. 10/10/2026 · <a href="apendice-c/" style="color:var(--blue);font-weight:600;text-decoration:none">Ver Apéndice C completo →</a></span>
     </div>
     <details class="obj-group" open>
       <summary>
@@ -468,20 +475,20 @@
           <h3>Satisfacción de los clientes</h3>
           <span class="og-count">5 indicadores</span>
         </div>
-        <div class="og-badges"><span class="og-pill ok">5 cumplidos</span></div>
+        <div class="og-badges"><span class="og-pill ok">4 cumplidos</span><span class="og-pill off">1 no cumplido</span></div>
       </summary>
       <div class="obj-grid">
         <div class="obj-tile is-ok">
           <div class="obj-label">Satisfacción de clientes</div>
-          <div class="obj-real">95.6%</div>
+          <div class="obj-real">96.0%</div>
           <div class="obj-meta-row"><span class="obj-meta">Meta &gt; 92%</span><span class="obj-status">Cumplido</span></div>
-          <span class="obj-delta">Δ vs. meta: +3.6pp</span>
+          <span class="obj-delta">Δ vs. meta: +4.0pp</span>
         </div>
-        <div class="obj-tile is-ok">
+        <div class="obj-tile is-off">
           <div class="obj-label">Vs. competencia</div>
-          <div class="obj-real">93.1%</div>
-          <div class="obj-meta-row"><span class="obj-meta">Meta &gt; 92%</span><span class="obj-status">Cumplido</span></div>
-          <span class="obj-delta">Δ vs. meta: +1.1pp</span>
+          <div class="obj-real">91.1%</div>
+          <div class="obj-meta-row"><span class="obj-meta">Meta &gt; 92%</span><span class="obj-status">No cumplido</span></div>
+          <span class="obj-delta">Δ vs. meta: −0.9pp</span>
         </div>
         <div class="obj-tile is-ok">
           <div class="obj-label">Quejas de clientes</div>
@@ -491,15 +498,15 @@
         </div>
         <div class="obj-tile is-ok">
           <div class="obj-label">Demoras de entrega</div>
-          <div class="obj-real">19.1%</div>
+          <div class="obj-real">1.0%</div>
           <div class="obj-meta-row"><span class="obj-meta">Meta &lt; 20%</span><span class="obj-status">Cumplido</span></div>
-          <span class="obj-delta">Margen vs. meta: −0.9pp</span>
+          <span class="obj-delta">Margen vs. meta: −19.0pp</span>
         </div>
         <div class="obj-tile is-ok">
           <div class="obj-label">Devoluciones</div>
-          <div class="obj-real">1.2%</div>
+          <div class="obj-real">0.6%</div>
           <div class="obj-meta-row"><span class="obj-meta">Meta &lt; 2%</span><span class="obj-status">Cumplido</span></div>
-          <span class="obj-delta">Margen vs. meta: −0.8pp</span>
+          <span class="obj-delta">Margen vs. meta: −1.4pp</span>
         </div>
       </div>
     </details>
@@ -511,32 +518,32 @@
           <h3>Eficiencia de los procesos</h3>
           <span class="og-count">4 indicadores</span>
         </div>
-        <div class="og-badges"><span class="og-pill ok">2 cumplidos</span><span class="og-pill off">2 no cumplidos</span></div>
+        <div class="og-badges"><span class="og-pill ok">3 cumplidos</span><span class="og-pill off">1 no cumplido</span></div>
       </summary>
       <div class="obj-grid">
-        <div class="obj-tile is-off">
+        <div class="obj-tile is-ok">
           <div class="obj-label">Ingresos vs. egresos de moldes</div>
-          <div class="obj-real">2.7%</div>
-          <div class="obj-meta-row"><span class="obj-meta">Meta &gt; 3%</span><span class="obj-status">No cumplido</span></div>
-          <span class="obj-delta">Δ vs. meta: −0.3pp</span>
+          <div class="obj-real">1.6%</div>
+          <div class="obj-meta-row"><span class="obj-meta">Meta &gt; 1,5%</span><span class="obj-status">Cumplido</span></div>
+          <span class="obj-delta">Δ vs. meta: +0.1pp</span>
         </div>
         <div class="obj-tile is-off">
           <div class="obj-label">% Scrap</div>
-          <div class="obj-real">5.4%</div>
+          <div class="obj-real">3.6%</div>
           <div class="obj-meta-row"><span class="obj-meta">Meta &lt; 3%</span><span class="obj-status">No cumplido</span></div>
-          <span class="obj-delta">Excede meta: +2.4pp</span>
+          <span class="obj-delta">Excede meta: +0.6pp</span>
         </div>
         <div class="obj-tile is-ok">
           <div class="obj-label">Eficiencia de máquinas</div>
-          <div class="obj-real">91.5%</div>
+          <div class="obj-real">95.2%</div>
           <div class="obj-meta-row"><span class="obj-meta">Meta &gt; 89%</span><span class="obj-status">Cumplido</span></div>
-          <span class="obj-delta">Δ vs. meta: +2.5pp</span>
+          <span class="obj-delta">Δ vs. meta: +6.2pp</span>
         </div>
         <div class="obj-tile is-ok">
           <div class="obj-label">Set Up cambio de molde</div>
-          <div class="obj-real">2.46 hs</div>
+          <div class="obj-real">2.51 hs</div>
           <div class="obj-meta-row"><span class="obj-meta">Meta 3 hs</span><span class="obj-status">Cumplido</span></div>
-          <span class="obj-delta">Margen vs. meta: −0.54 hs</span>
+          <span class="obj-delta">Margen vs. meta: −0.49 hs</span>
         </div>
       </div>
     </details>
@@ -553,9 +560,9 @@
       <div class="obj-grid">
         <div class="obj-tile is-ok">
           <div class="obj-label">Fallas internas (NC)</div>
-          <div class="obj-real">2.0%</div>
+          <div class="obj-real">0.0%</div>
           <div class="obj-meta-row"><span class="obj-meta">Meta &lt; 6%</span><span class="obj-status">Cumplido</span></div>
-          <span class="obj-delta">Margen vs. meta: −4.0pp</span>
+          <span class="obj-delta">Margen vs. meta: −6.0pp</span>
         </div>
       </div>
     </details>
@@ -572,9 +579,9 @@
       <div class="obj-grid">
         <div class="obj-tile is-ok">
           <div class="obj-label">Evaluación de proveedores</div>
-          <div class="obj-real">98.0%</div>
+          <div class="obj-real">96.4%</div>
           <div class="obj-meta-row"><span class="obj-meta">Meta &gt; 95%</span><span class="obj-status">Cumplido</span></div>
-          <span class="obj-delta">Δ vs. meta: +3.0pp</span>
+          <span class="obj-delta">Δ vs. meta: +1.4pp</span>
         </div>
       </div>
     </details>
@@ -586,20 +593,20 @@
           <h3>Gestión del personal</h3>
           <span class="og-count">2 indicadores</span>
         </div>
-        <div class="og-badges"><span class="og-pill ok">1 cumplido</span><span class="og-pill off">1 no cumplido</span></div>
+        <div class="og-badges"><span class="og-pill ok">1 cumplido</span><span class="og-pill wip">1 en curso</span></div>
       </summary>
       <div class="obj-grid">
-        <div class="obj-tile is-ok">
+        <div class="obj-tile is-wip">
           <div class="obj-label">Capacitación cumplida</div>
-          <div class="obj-real">90.0%</div>
-          <div class="obj-meta-row"><span class="obj-meta">Meta &gt; 90%</span><span class="obj-status">Cumplido</span></div>
-          <span class="obj-delta">Δ vs. meta: 0.0pp — límite</span>
+          <div class="obj-real">87.5%</div>
+          <div class="obj-meta-row"><span class="obj-meta">Meta &gt; 90%</span><span class="obj-status">En curso</span></div>
+          <span class="obj-delta">Se evalúa al 31/12</span>
         </div>
-        <div class="obj-tile is-off">
+        <div class="obj-tile is-ok">
           <div class="obj-label">Ausentismo</div>
-          <div class="obj-real">10.2%</div>
-          <div class="obj-meta-row"><span class="obj-meta">Meta &lt; 5%</span><span class="obj-status">No cumplido</span></div>
-          <span class="obj-delta">Excede meta: +5.2pp</span>
+          <div class="obj-real">2.6%</div>
+          <div class="obj-meta-row"><span class="obj-meta">Meta &lt; 5%</span><span class="obj-status">Cumplido</span></div>
+          <span class="obj-delta">Margen vs. meta: −2.4pp</span>
         </div>
       </div>
     </details>

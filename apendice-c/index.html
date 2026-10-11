@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apéndice C – Indicadores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#F5F9FD; --surface:#fff; --surface-2:#EFF6FC; --border:#D7E6F5;
+  --text:#0B1E3D; --dim:#4C6483; --faint:#8AA0BC;
+  --navy:#0E22A0; --blue:#1450D6; --blue-soft:#E8F1FE;
+  --ok-bg:#C6EFCE; --ok-fg:#006100; --off-bg:#FFC7CE; --off-fg:#9C0006; --wip-bg:#FFEB9C; --wip-fg:#9C5700;
+  --nd-bg:#EEF1F5; --nd-fg:#64748B;
+  --fd:'Big Shoulders Display','Arial Narrow',sans-serif; --fb:'IBM Plex Sans',-apple-system,'Segoe UI',sans-serif; --fm:'IBM Plex Mono',Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#0A1220; --surface:#101B2E; --surface-2:#15233A; --border:#223252;
+    --text:#E8EEF8; --dim:#9FB0C8; --faint:#647389;
+    --navy:#6E8AFF; --blue:#4E86FF; --blue-soft:#16234A;
+    --ok-bg:#12351F; --ok-fg:#7BE0A0; --off-bg:#3F1B1D; --off-fg:#FF9B9B; --wip-bg:#3A2F10; --wip-fg:#F2CF6B;
+    --nd-bg:#182234; --nd-fg:#92A2B8;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0A1220; --surface:#101B2E; --surface-2:#15233A; --border:#223252;
+  --text:#E8EEF8; --dim:#9FB0C8; --faint:#647389;
+  --navy:#6E8AFF; --blue:#4E86FF; --blue-soft:#16234A;
+  --ok-bg:#12351F; --ok-fg:#7BE0A0; --off-bg:#3F1B1D; --off-fg:#FF9B9B; --wip-bg:#3A2F10; --wip-fg:#F2CF6B;
+  --nd-bg:#182234; --nd-fg:#92A2B8;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+header.top{border-bottom:1px solid var(--border);background:var(--surface)}
+header.top .wrap{display:flex;align-items:center;gap:14px;padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.back{color:var(--blue);text-decoration:none;font-size:13px;font-weight:600}
+h1{font-family:var(--fd);font-weight:800;font-size:30px;letter-spacing:.01em;margin:0;line-height:1.05}
+h1 small{display:block;font-family:var(--fb);font-weight:500;font-size:12px;color:var(--dim);letter-spacing:0;margin-top:4px}
+.sp{flex:1}
+.chip{font-family:var(--fm);font-size:12px;padding:4px 10px;border-radius:99px;background:var(--wip-bg);color:var(--wip-fg);white-space:nowrap}
+.btn{font:600 13px var(--fb);padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+nav.tabs{display:flex;gap:4px;margin:18px 0 0;border-bottom:1px solid var(--border);overflow-x:auto}
+nav.tabs button{font:600 14px var(--fb);background:none;border:0;border-bottom:3px solid transparent;color:var(--dim);padding:10px 14px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--blue);border-bottom-color:var(--blue)}
+section.pane{display:none;padding:20px 0 40px}
+section.pane.on{display:block}
+.note{font-size:13px;color:var(--dim);margin:10px 0}
+/* planilla */
+.sheet-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+table.ap{border-collapse:collapse;width:100%;min-width:1040px;font-size:13px}
+table.ap th,table.ap td{border:1px solid var(--border);padding:6px 5px;text-align:center}
+table.ap thead th{background:var(--surface-2);font-weight:700}
+table.ap td.obj{font-weight:700;text-align:left;background:var(--surface-2);width:130px}
+table.ap td.ind{text-align:left;width:190px}
+table.ap td.meta{font-family:var(--fm);white-space:nowrap}
+table.ap td.v{font-family:var(--fm)}
+td.ok{background:var(--ok-bg);color:var(--ok-fg);font-weight:600}
+td.off{background:var(--off-bg);color:var(--off-fg);font-weight:600}
+td.wip{background:var(--wip-bg);color:var(--wip-fg);font-weight:600}
+td.nd{color:var(--faint)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;margin-top:12px;color:var(--dim)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+/* cómo se mide */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.card h3{margin:0 0 2px;font-size:15px}
+.card .g{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);font-weight:600}
+.card dl{margin:8px 0 0;display:grid;grid-template-columns:74px 1fr;gap:4px 10px;font-size:13px}
+.card dt{color:var(--faint);font-weight:600}
+.card dd{margin:0}
+.card code{font-family:var(--fm);font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+/* series */
+table.ser{border-collapse:collapse;width:100%;font-size:13.5px;background:var(--surface)}
+table.ser th,table.ser td{border:1px solid var(--border);padding:7px 10px;text-align:right}
+table.ser th:first-child,table.ser td:first-child{text-align:left}
+table.ser thead th{background:var(--surface-2)}
+table.ser td small{color:var(--faint);display:block;font-size:11px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+ul.clean{margin:6px 0 0;padding-left:18px;font-size:13.5px}
+footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);font-size:13px;text-align:center}
+@media (max-width:640px){h1{font-size:25px}}
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  body{background:#fff;color:#000}
+  header.top .btn,nav.tabs,.note.noprint,.legend.noprint,footer .noprint{display:none!important}
+  section.pane{display:none!important}
+  section#p-ap{display:block!important;padding:0}
+  .sheet-wrap{overflow:visible;border:0}
+  table.ap{min-width:0;font-size:9.5px}
+  table.ap th,table.ap td{border-color:#000;padding:3px 2px}
+  td.ok{background:#C6EFCE!important;color:#006100!important}
+  td.off{background:#FFC7CE!important;color:#9C0006!important}
+  td.wip{background:#FFEB9C!important;color:#9C5700!important}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="back" href="../">← SGC Silver Industrial</a>
+    <h1>Apéndice C – Metas para los objetivos de calidad<small>Rev. 17 · Año 2026 · Cálculo automático según Instructivo I.09 Rev. 012</small></h1>
+    <span class="sp"></span>
+    <span class="chip" id="estado">Período abierto · provisional</span>
+    <button class="btn pri" onclick="window.print()">Imprimir Apéndice C</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-p="p-ap">Apéndice C 2026</button>
+    <button role="tab" aria-selected="false" data-p="p-how">Cómo se mide cada indicador</button>
+    <button role="tab" aria-selected="false" data-p="p-ser">Series 2023–2026</button>
+    <button role="tab" aria-selected="false" data-p="p-est">Estado y respaldo</button>
+  </nav>
+
+  <section class="pane on" id="p-ap">
+    <p class="note noprint">Datos al <b>10/10/2026</b>. Los meses cerrados quedan congelados al cierre; el último mes y los de NC pendientes de carga son provisionales.</p>
+    <div class="sheet-wrap"><table class="ap" id="tabla"></table></div>
+    <div class="legend noprint">
+      <span><i style="background:var(--ok-bg)"></i>Verde: cumple la meta</span>
+      <span><i style="background:var(--off-bg)"></i>Rojo: no cumple la meta</span>
+      <span><i style="background:var(--wip-bg)"></i>Amarillo: en curso, se evalúa al cierre del año (31/12)</span>
+    </div>
+    <p class="note">Ausentismo: sin licencia gremial, licencia por examen ni suspensiones. Ingresos vs Egresos: meta propuesta, sujeta a aprobación en la Revisión por la Dirección.</p>
+  </section>
+
+  <section class="pane" id="p-how">
+    <p class="note">Cada indicador se calcula con ponderación (Σ numerador / Σ denominador). Excepciones: Ingresos vs Egresos (suma de 12 porcentajes mensuales) y los indicadores de medición anual (satisfacción, proveedores, capacitación).</p>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="pane" id="p-ser">
+    <p class="note">Recalculado en esta página desde la serie mensual de OTI y NC. Base común: <b>OTI entregadas</b> (con fecha de remito conformado), asignadas al mes de entrega pactada. Hasta 2024 (la entrega se empezó a medir en mayo de 2024) quejas, devoluciones y fallas usan el total de OTI pactadas; desde 2025, las OTI entregadas. Los atrasos figuran "sin dato" antes de mayo de 2024.</p>
+    <div class="sheet-wrap"><table class="ser" id="serie"></table></div>
+    <p class="note">Scrap y eficiencia de máquinas se miden por OTI desde enero de 2024 (antes: sin dato). 2026 corresponde a enero–septiembre.</p>
+  </section>
+
+  <section class="pane" id="p-est">
+    <div class="grid2">
+      <div class="card"><h3>Estado de los períodos</h3>
+        <ul class="clean">
+          <li><b>2023, 2024, 2025:</b> cerrados.</li>
+          <li><b>2026:</b> abierto. Enero–agosto congelados; septiembre provisional hasta cargar las NC de junio a octubre en Q.21.</li>
+          <li>Al cerrar un período se registra fecha y usuario, y no se recalcula.</li>
+        </ul></div>
+      <div class="card"><h3>Respaldo semestral</h3>
+        <p style="font-size:13.5px;margin:6px 0 10px">Exporta los datos que alimentan el Apéndice C (OTI, NC, ausentismo, capacitación, encuestas, evaluaciones) en formato CSV. Se realiza dos veces por año, junto con el respaldo del Q.11.</p>
+        <button class="btn" id="exp">Descargar serie mensual (CSV)</button></div>
+      <div class="card"><h3>Pendiente de conexión</h3>
+        <ul class="clean">
+          <li>Lectura directa desde la base de Q.21 (Neon) mediante la API existente.</li>
+          <li>Importador del archivo "Datos para atrasos de entrega".</li>
+          <li>Carga mensual de ausentismo desde RRHH.</li>
+        </ul>
+        <p class="note">Hoy esta página muestra la foto de datos al 10/10/2026.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap">
+  Desarrollado por Mgter. Diego Ortiz — Líder de Mejora Continua | Consultor ISO · +54 9 11 4170-6692
+</div></footer>
+
+<script>
+const SERIE = [{"m":"2023-01","oti_total":20,"oti_ent":0,"atrasos":0,"quejas":2,"devol":1,"fallas":1,"prov":0,"fuente_nc":"Q.11"},{"m":"2023-02","oti_total":89,"oti_ent":0,"atrasos":0,"quejas":0,"devol":0,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2023-03","oti_total":122,"oti_ent":0,"atrasos":0,"quejas":1,"devol":1,"fallas":7,"prov":0,"fuente_nc":"Q.11"},{"m":"2023-04","oti_total":136,"oti_ent":0,"atrasos":0,"quejas":1,"devol":1,"fallas":5,"prov":0,"fuente_nc":"Q.11"},{"m":"2023-05","oti_total":132,"oti_ent":0,"atrasos":0,"quejas":0,"devol":0,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2023-06","oti_total":98,"oti_ent":0,"atrasos":0,"quejas":2,"devol":2,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2023-07","oti_total":106,"oti_ent":0,"atrasos":0,"quejas":4,"devol":2,"fallas":0,"prov":2,"fuente_nc":"Q.11"},{"m":"2023-08","oti_total":91,"oti_ent":0,"atrasos":0,"quejas":2,"devol":0,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2023-09","oti_total":100,"oti_ent":0,"atrasos":0,"quejas":1,"devol":1,"fallas":7,"prov":0,"fuente_nc":"Q.11"},{"m":"2023-10","oti_total":76,"oti_ent":0,"atrasos":0,"quejas":2,"devol":0,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2023-11","oti_total":74,"oti_ent":0,"atrasos":0,"quejas":1,"devol":1,"fallas":1,"prov":0,"fuente_nc":"Q.11"},{"m":"2023-12","oti_total":96,"oti_ent":0,"atrasos":0,"quejas":2,"devol":2,"fallas":0,"prov":1,"fuente_nc":"Q.11"},{"m":"2024-01","oti_total":53,"oti_ent":0,"atrasos":0,"quejas":3,"devol":2,"fallas":2,"prov":1,"fuente_nc":"Q.11"},{"m":"2024-02","oti_total":54,"oti_ent":0,"atrasos":0,"quejas":0,"devol":0,"fallas":2,"prov":1,"fuente_nc":"Q.11"},{"m":"2024-03","oti_total":109,"oti_ent":0,"atrasos":0,"quejas":1,"devol":1,"fallas":4,"prov":0,"fuente_nc":"Q.11"},{"m":"2024-04","oti_total":66,"oti_ent":1,"atrasos":1,"quejas":1,"devol":1,"fallas":1,"prov":1,"fuente_nc":"Q.11"},{"m":"2024-05","oti_total":90,"oti_ent":71,"atrasos":20,"quejas":1,"devol":0,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2024-06","oti_total":104,"oti_ent":96,"atrasos":24,"quejas":0,"devol":0,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2024-07","oti_total":102,"oti_ent":99,"atrasos":13,"quejas":5,"devol":1,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2024-08","oti_total":80,"oti_ent":76,"atrasos":9,"quejas":3,"devol":3,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2024-09","oti_total":135,"oti_ent":121,"atrasos":10,"quejas":8,"devol":8,"fallas":1,"prov":0,"fuente_nc":"Q.11"},{"m":"2024-10","oti_total":117,"oti_ent":104,"atrasos":16,"quejas":7,"devol":6,"fallas":1,"prov":0,"fuente_nc":"Q.11"},{"m":"2024-11","oti_total":98,"oti_ent":96,"atrasos":23,"quejas":6,"devol":2,"fallas":1,"prov":0,"fuente_nc":"Q.11"},{"m":"2024-12","oti_total":128,"oti_ent":104,"atrasos":12,"quejas":8,"devol":5,"fallas":4,"prov":0,"fuente_nc":"Q.11"},{"m":"2025-01","oti_total":100,"oti_ent":88,"atrasos":25,"quejas":3,"devol":2,"fallas":2,"prov":0,"fuente_nc":"Q.11"},{"m":"2025-02","oti_total":92,"oti_ent":81,"atrasos":29,"quejas":3,"devol":3,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2025-03","oti_total":119,"oti_ent":110,"atrasos":26,"quejas":3,"devol":3,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2025-04","oti_total":87,"oti_ent":79,"atrasos":12,"quejas":3,"devol":3,"fallas":1,"prov":0,"fuente_nc":"Q.11"},{"m":"2025-05","oti_total":150,"oti_ent":131,"atrasos":49,"quejas":2,"devol":1,"fallas":1,"prov":0,"fuente_nc":"Q.11"},{"m":"2025-06","oti_total":94,"oti_ent":82,"atrasos":7,"quejas":1,"devol":1,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2025-07","oti_total":148,"oti_ent":133,"atrasos":21,"quejas":1,"devol":1,"fallas":1,"prov":0,"fuente_nc":"Q.11"},{"m":"2025-08","oti_total":113,"oti_ent":100,"atrasos":7,"quejas":1,"devol":1,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2025-09","oti_total":104,"oti_ent":91,"atrasos":20,"quejas":2,"devol":0,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2025-10","oti_total":68,"oti_ent":65,"atrasos":1,"quejas":0,"devol":0,"fallas":1,"prov":1,"fuente_nc":"Q.11"},{"m":"2025-11","oti_total":102,"oti_ent":102,"atrasos":7,"quejas":0,"devol":0,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2025-12","oti_total":69,"oti_ent":68,"atrasos":5,"quejas":0,"devol":0,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2026-01","oti_total":36,"oti_ent":36,"atrasos":0,"quejas":1,"devol":0,"fallas":0,"prov":1,"fuente_nc":"Q.11"},{"m":"2026-02","oti_total":177,"oti_ent":176,"atrasos":7,"quejas":2,"devol":2,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2026-03","oti_total":74,"oti_ent":73,"atrasos":0,"quejas":3,"devol":1,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2026-04","oti_total":105,"oti_ent":102,"atrasos":0,"quejas":0,"devol":0,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2026-05","oti_total":182,"oti_ent":182,"atrasos":0,"quejas":3,"devol":1,"fallas":0,"prov":0,"fuente_nc":"Q.11"},{"m":"2026-06","oti_total":170,"oti_ent":165,"atrasos":0,"quejas":2,"devol":2,"fallas":0,"prov":0,"fuente_nc":"Pendiente carga (informado)"},{"m":"2026-07","oti_total":62,"oti_ent":53,"atrasos":3,"quejas":1,"devol":0,"fallas":0,"prov":0,"fuente_nc":"Pendiente carga (informado)"},{"m":"2026-08","oti_total":126,"oti_ent":113,"atrasos":0,"quejas":1,"devol":0,"fallas":0,"prov":0,"fuente_nc":"Pendiente carga (informado)"},{"m":"2026-09","oti_total":61,"oti_ent":55,"atrasos":0,"quejas":0,"devol":0,"fallas":0,"prov":0,"fuente_nc":"Pendiente carga (informado)"}];
+const NO = null;
+// Planilla 2026 (valores de la hoja "Para imprimir 26"); meses: Ene..Dic. Los acumulados son ponderados.
+// tipo: pct | num ; op: > < ; cmp = meta numérica; cells = {mes(0-11): valor}
+const AP = [
+ {obj:'Satisfacción de los clientes',rows:[
+  {ind:'Encuesta hacia Silver',meta:'> 92%',op:'>',cmp:.92,t:'pct',c:{0:.96},acc:.96},
+  {ind:'Encuesta respecto de la competencia de Silver',meta:'> 92%',op:'>',cmp:.92,t:'pct',c:{0:.9111},acc:.9111},
+  {ind:'Quejas',meta:'< 3%',op:'<',cmp:.03,t:'pct',c:{0:.01499,6:.00905},acc:.01361},
+  {ind:'Demoras en plazo de entrega',meta:'< 20%',op:'<',cmp:.2,t:'pct',c:{0:0,1:.03977,2:0,3:0,4:0,5:0,6:.0566,7:0,8:0},acc:.01047},
+  {ind:'% Devoluciones',meta:'< 2%',op:'<',cmp:.02,t:'pct',c:{0:.01053,3:.00668,6:0},acc:.00628}]},
+ {obj:'Eficiencia de los procesos',rows:[
+  {ind:'Ingresos vs Egresos',meta:'> 1,5%',op:'>',cmp:.015,t:'pct',c:{0:.00266,1:.00265,2:.00265,3:0,4:.00787,5:0,6:0,7:0,8:0},acc:.01583,soloAcc:true,dec:2},
+  {ind:'% Scrap',meta:'< 3%',op:'<',cmp:.03,t:'pct',c:{0:.043,1:.0458,2:.031,3:.0346,4:.024,5:.0201,6:.0503,7:.0405,8:.039},acc:.0357,dec:2},
+  {ind:'Eficiencia de Máquinas',meta:'> 89%',op:'>',cmp:.89,t:'pct',c:{0:.9563,1:.9387,2:.9559,3:.9371,4:.9431,5:.9567,6:.9813,7:.9426,8:.9489},acc:.9516,dec:2},
+  {ind:'SET UP (hs por cambio)',meta:'3 HS',op:'<',cmp:3,t:'num',c:{0:2.56,1:2.76,2:2.48,3:2.39,4:2.59,5:2.45,6:2.3,7:2.58,8:2.28},acc:2.51}]},
+ {obj:'Mejora Continua',rows:[
+  {ind:'Fallas Internas',meta:'< 6%',op:'<',cmp:.06,t:'pct',c:{0:0,3:0,6:0},acc:0}]},
+ {obj:'Optimización de los Proveedores',rows:[
+  {ind:'Evaluación de Proveedores',meta:'> 95%',op:'>',cmp:.95,t:'pct',c:{0:.9643},acc:.9643}]},
+ {obj:'Gestión del personal',rows:[
+  {ind:'Cumplimiento del programa de capacitación',meta:'> 90%',op:'>',cmp:.9,t:'pct',c:{0:.875},acc:.875,wip:true},
+  {ind:'Ausentismo',meta:'< 5%',op:'<',cmp:.05,t:'pct',c:{0:.01364,1:0,2:.0183,3:.0085,4:.0305,5:.0055,6:.0431,7:.058,8:.0644},acc:.02604,dec:2}]}
+];
+const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sept','Oct','Nov','Dic'];
+const fmt=(r,v)=>{ if(v==null) return ''; const d=r.dec??(r.t==='pct'?(r.ind.startsWith('Encuesta')||r.ind.startsWith('Evaluación')||r.ind.startsWith('Cumpl')?2:2):2);
+  return r.t==='pct'? (v*100).toFixed(d).replace('.',',')+'%' : v.toFixed(2).replace('.',','); };
+const ok=(r,v)=> r.op==='>'? v>r.cmp+1e-9 : v<=r.cmp+1e-9;
+function cls(r,v,esAcc){
+  if(v==null) return '';
+  if(r.wip) return 'wip';
+  if(r.soloAcc && !esAcc) return '';
+  return ok(r,v)?'ok':'off';
+}
+function planilla(){
+  let h='<thead><tr><th rowspan="2">Objetivo</th><th rowspan="2">Indicador</th><th rowspan="2">Meta<br>Año 2026</th><th colspan="12">REAL CALCULADO</th><th rowspan="2">Acumulado</th></tr><tr>'+MESES.map(m=>`<th>${m}</th>`).join('')+'</tr></thead><tbody>';
+  AP.forEach(g=>g.rows.forEach((r,i)=>{
+    h+='<tr>'+(i===0?`<td class="obj" rowspan="${g.rows.length}">${g.obj}</td>`:'')+`<td class="ind">${r.ind}</td><td class="meta">${r.meta}</td>`;
+    for(let m=0;m<12;m++){ const v=r.c[m]; h+=`<td class="v ${cls(r,v,false)}">${v==null?'':fmt(r,v)}</td>`; }
+    h+=`<td class="v ${cls(r,r.acc,true)}">${fmt(r,r.acc)}</td></tr>`;
+  }));
+  document.getElementById('tabla').innerHTML=h+'</tbody>';
+}
+const HOW=[
+ ['Satisfacción','Encuesta hacia Silver','Σ puntaje ponderado de cada cliente / Σ puntaje máximo. Escala 1–5; pesos: calidad 2, cumplimiento 2, asesoramiento 1, atención 1 (máx. 30 por cliente).','Encuestas a clientes (la encuesta del año N+1 mide el año N).','Anual'],
+ ['Satisfacción','Respecto de la competencia','Igual criterio con escala 1–3; pesos: calidad 2, cumplimiento 2, flexibilidad 1,5, asesoramiento 1, atención 1 (máx. 22,5).','Encuestas a clientes.','Anual'],
+ ['Satisfacción','Quejas','<code>NC "Reclamos de Clientes" / OTI entregadas</code>','Q.21 / Q.11 (NC) y Datos para atrasos de entrega (OTI).','Mensual, informe semestral'],
+ ['Satisfacción','Demoras en plazo de entrega','<code>OTI con fecha enviada > fecha pactada / OTI entregadas</code>. Las OTI sin fecha de remito conformado se ignoran.','Datos para atrasos de entrega (fecha del remito conformado).','Mensual'],
+ ['Satisfacción','% Devoluciones','<code>NC con devolución / OTI entregadas</code>','Q.21 / Q.11 (campo devolución).','Mensual, informe trimestral'],
+ ['Eficiencia','Ingresos vs Egresos','<code>(altas − bajas de moldes) / moldes acumulados</code>. El acumulado anual es la suma de los 12 valores mensuales.','Registro de moldes.','Mensual'],
+ ['Eficiencia','% Scrap','<code>Σ scrap / Σ producción</code> por OTI.','Scrap x OTI (P.10 / P.07), desde 2024.','Mensual'],
+ ['Eficiencia','Eficiencia de máquinas','<code>Σ horas corregidas / Σ horas reales</code>, donde horas corregidas = (producción / cavidades) × ciclo estándar / 3600.','P.10 / P.07 y maestro de productos.','Mensual'],
+ ['Eficiencia','SET UP','<code>Σ horas de tareas de cambio / n.º de cambios</code>. Cada cambio exige cargar "tiempo" o "no aplica".','Control de Cambio de Moldes.','Mensual'],
+ ['Mejora continua','Fallas internas','<code>NC tipo "Defectos x Control de Calidad" / OTI entregadas</code>','Q.21 / Q.11.','Mensual'],
+ ['Proveedores','Evaluación de proveedores','Promedio ponderado de los puntajes de la evaluación anual / puntaje máximo.','Evaluación a proveedores (carpeta del SGC).','Anual'],
+ ['Personal','Cumplimiento del programa de capacitación','<code>capacitaciones realizadas / programadas</code>. Durante el año figura "en curso"; el valor definitivo es el del 31/12.','A.18 (programa), A.26 (registro), A.14 (firmas).','Anual'],
+ ['Personal','Ausentismo','<code>(AA + AS + ILT) / días laborables</code>, descontando del denominador licencia gremial, licencia por examen y suspensiones. Vacaciones, feriados e IT/DJ no son ausencias.','Ausentismo RRHH (archivo mensual).','Mensual']
+];
+function how(){
+  document.getElementById('cards').innerHTML=HOW.map(x=>`<div class="card"><div class="g">${x[0]}</div><h3>${x[1]}</h3><dl><dt>Fórmula</dt><dd>${x[2]}</dd><dt>Fuente</dt><dd>${x[3]}</dd><dt>Período</dt><dd>${x[4]}</dd></dl></div>`).join('');
+}
+function serie(){
+  const por={};
+  SERIE.forEach(r=>{const y=r.m.slice(0,4);const o=por[y]||(por[y]={tot:0,ent:0,atr:0,atrBase:0,q:0,d:0,f:0,base:0});
+    const post=r.m>='2024-05';
+    o.tot+=r.oti_total;
+    o.base+=r.m>='2025-01'?r.oti_ent:r.oti_total;
+    if(post){o.atr+=r.atrasos;o.atrBase+=r.oti_ent;}
+    o.q+=r.quejas;o.d+=r.devol;o.f+=r.fallas;});
+  const p=(n,b)=>b?((n/b)*100).toFixed(2).replace('.',',')+'%':'sin dato';
+  const ys=Object.keys(por).sort();
+  const rows=[
+   ['OTI (base de cálculo)',y=>por[y].base.toLocaleString('es-AR')],
+   ['Quejas',y=>p(por[y].q,por[y].base)+`<small>${por[y].q} NC</small>`],
+   ['Devoluciones',y=>p(por[y].d,por[y].base)+`<small>${por[y].d} NC</small>`],
+   ['Fallas internas',y=>p(por[y].f,por[y].base)+`<small>${por[y].f} NC</small>`],
+   ['Demoras de entrega',y=>por[y].atrBase?p(por[y].atr,por[y].atrBase)+`<small>${por[y].atr} OTI · desde may-2024</small>`:'sin dato']
+  ];
+  document.getElementById('serie').innerHTML='<thead><tr><th>Indicador (ponderado)</th>'+ys.map(y=>`<th>${y}${y==='2026'?' (ene–sep)':''}</th>`).join('')+'</tr></thead><tbody>'+rows.map(r=>`<tr><td>${r[0]}</td>`+ys.map(y=>`<td>${r[1](y)}</td>`).join('')+'</tr>').join('')+'</tbody>';
+}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('section.pane').forEach(s=>s.classList.toggle('on',s.id===b.dataset.p));
+});
+document.getElementById('exp').onclick=()=>{
+  const cab=['mes','oti_total','oti_entregadas','atrasos','quejas','devoluciones','fallas','fuente_nc'];
+  const csv=[cab.join(',')].concat(SERIE.map(r=>[r.m,r.oti_total,r.oti_ent,r.atrasos,r.quejas,r.devol,r.fallas,'"'+(r.fuente_nc||'')+'"'].join(','))).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='apendice_c_serie_mensual_respaldo.csv';a.click();
+};
+planilla();how();serie();
+</script>
+</body>
+</html>
