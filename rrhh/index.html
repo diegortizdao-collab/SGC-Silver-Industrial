@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="a14.js"></script>
+<script src="aus.js"></script>
 <style>
 :root{
   color-scheme: light;
@@ -82,6 +83,23 @@ td.l,th.l{text-align:left}
 details>summary{cursor:pointer;font-weight:600;font-size:16px}
 .warn{color:var(--wip-fg);background:var(--wip-bg);border-radius:8px;padding:8px 12px;font-size:13px;margin:8px 0}
 @media(max-width:560px){.alist .ar{grid-template-columns:24px 1fr 70px}.alist .ar input[type=text]{grid-column:2/-1}}
+
+.chip{display:inline-block;border-radius:6px;padding:1px 7px;font-size:12px;font-weight:600;margin:1px 3px 1px 0;white-space:nowrap}
+.chip.n1{background:var(--wip-bg);color:var(--wip-fg)}.chip.n2{background:#FFD9B3;color:#7A3B00}.chip.n3{background:var(--off-bg);color:var(--off-fg)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .chip.n2{background:#4A2B10;color:#FFC38A}}
+tr.clk{cursor:pointer}tr.clk:hover td{background:var(--surface-2)}
+.bars{display:flex;align-items:flex-end;gap:3px;height:70px;border-bottom:1px solid var(--border);margin:6px 0 2px}
+.bars div{flex:1;min-width:6px;background:var(--blue);border-radius:2px 2px 0 0;position:relative}
+.bars div.b2{background:#C27A00}
+.bars div i{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font:600 10px var(--fb);font-style:normal;color:var(--dim)}
+.lbls{display:flex;gap:3px;font-size:9.5px;color:var(--faint)}.lbls span{flex:1;min-width:6px;text-align:center;overflow:hidden}
+.pr-t{display:none}
+@media print{.pr-t{display:block!important}}
+.priv{font-size:12.5px;color:var(--dim);border-left:3px solid var(--blue);padding:4px 10px;margin:8px 0}
+@media print{
+  body.pf header,body.pf nav,body.pf footer,body.pf main>*:not(#pesT),body.pf #pesT>*:not(#ficha),body.pf .noprint{display:none!important}
+  body.pf #pesT{display:block!important}body.pf #ficha{border:0;padding:0}body.pf{background:#fff;color:#000}
+}
 footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);font-size:13px;text-align:center}
 </style>
 </head>
@@ -103,14 +121,15 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
     <p class="msg" id="loginMsg"></p>
   </section>
 
-  <nav class="tabs hide" id="tabs"><button id="tAus" class="on">Ausentismo</button><button id="tCap">Capacitación</button></nav>
+  <nav class="tabs hide" id="tabs"><button id="tAus" class="on">Ausentismo</button><button id="tCap">Capacitación</button><button id="tPes">Personas</button></nav>
 
 <div id="ausT" class="hide" style="display:grid;gap:16px">
   <section class="card" id="cargaC">
     <h2>Cargar el ausentismo del mes</h2>
-    <p class="note">Subí el "Informe mensual de ausentismo y retrasos" que ya armás (.xls o .xlsx). Podés elegir varios meses juntos para cargar el histórico. La página lo calcula en tu computadora: a la base solo viaja el total del mes (días ausentes y días laborables). <b>No se guardan nombres ni los días de cada persona.</b></p>
+    <p class="note">Subí el "Informe mensual de ausentismo y retrasos" que ya armás (.xls o .xlsx). Podés elegir varios meses juntos para cargar el histórico. La página lo lee en tu computadora y guarda (1) el total del mes para el Apéndice C y (2) los códigos de cada persona para su seguimiento individual, que solo ven RRHH, Gestión de calidad y la dirección. No se guarda ningún motivo ni diagnóstico, solo los códigos del informe.</p>
     <input type="file" id="file" accept=".xls,.xlsx" multiple>
     <div id="prev" style="margin-top:12px"></div>
+    <div id="mapBox"></div>
     <button class="btn pri hide" id="guardar" style="margin-top:10px">Guardar</button>
     <p class="msg" id="msg"></p>
   </section>
@@ -131,6 +150,25 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
     </ul>
     <p class="note">Procedimiento: Instructivo I.09 Rev. 012 (sección 5.2).</p>
   </section>
+</div>
+
+<div id="pesT" class="hide" style="display:grid;gap:16px">
+  <section class="card noprint">
+    <h2>Ausentismo y retrasos por persona</h2>
+    <p class="priv"><b>Confidencial.</b> Es información de personas: úsala para acompañar y, si hace falta, para respaldar una conversación. La enfermedad o el accidente (ILT) se muestra solo como contexto y no entra en el índice ni en las alertas.</p>
+    <div class="row">
+      <label style="margin:0">Hasta</label><select id="pHasta" style="width:auto"></select>
+      <label style="margin:0">Ventana</label><select id="pVent" style="width:auto"><option value="6">6 meses</option><option value="12" selected>12 meses</option><option value="24">24 meses</option></select>
+      <span class="sp"></span><button class="btn sm" id="pCsv">Exportar CSV</button>
+    </div>
+    <p class="msg" id="pMsg"></p>
+    <div class="tbl"><table id="pTbl"></table></div>
+    <p class="note">Hacé clic en una persona para ver su ficha. <b>Índice de Bradford</b> = (cantidad de episodios de ausencia)² × (días ausentes) con AA y AS en la ventana; pesa más las ausencias cortas y repetidas que una sola larga. Las ausencias seguidas de 10 días o más se informan aparte como ausencia prolongada y no entran en el índice. Referencias habituales: 45 observación, 125 conversar, 400 medida formal.</p>
+    <details><summary style="font-size:14px">Umbrales de las alertas</summary>
+      <div class="g2" style="margin-top:8px" id="pUmb"></div>
+    </details>
+  </section>
+  <section class="card hide" id="ficha"></section>
 </div>
 
 <div id="capT" class="hide" style="display:grid;gap:16px">
@@ -229,7 +267,7 @@ async function api(path,opt={}){
 }
 function entrar(on){
   $('loginC').classList.toggle('hide',on);['tabs','salir'].forEach(i=>$(i).classList.toggle('hide',!on));
-  if(on)tab('aus');else{$('ausT').classList.add('hide');$('capT').classList.add('hide');S.cargado=false;}
+  if(on)tab('aus');else{['ausT','capT','pesT'].forEach(i=>$(i).classList.add('hide'));S.cargado=false;P.cargado=false;}
 }
 function say(el,t,cls){el.textContent=t;el.className='msg'+(cls?' '+cls:'');}
 $('loginF').onsubmit=async ev=>{
@@ -253,8 +291,15 @@ async function historial(){
 const norm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
 const MES={ENERO:1,FEBRERO:2,MARZO:3,ABRIL:4,MAYO:5,JUNIO:6,JULIO:7,AGOSTO:8,AGSOTO:8,SEPTIEMBRE:9,SETIEMBRE:9,OCTUBRE:10,NOVIEMBRE:11,DICIEMBRE:12};
 const CONOCIDOS=new Set(['D','S','F','DJ','VAC','IT','IT-DJ','JI','EA','LG','LE','SUS','AA','AS','ILT','-','RA']);
-let datos=[];
-function leerAus(rows,nombre){
+/* ================= AUSENTISMO: carga por persona ================= */
+const nz=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean);
+function coincide(a,b){ // todos los tokens del nombre más corto aparecen (como prefijo) en el más largo
+  const [c,l]=a.length<=b.length?[a,b]:[b,a],usado=new Set();
+  return c.length>0&&c.every(t=>{const j=l.findIndex((p,k)=>!usado.has(k)&&p.startsWith(t));if(j<0)return false;usado.add(j);return true;});
+}
+const aliasLS={get(){try{return JSON.parse(localStorage.getItem('aus_alias')||'{}')}catch{return {}}},set(o){try{localStorage.setItem('aus_alias',JSON.stringify(o))}catch{}}};
+let carga=null; // {meses:Map(periodo->{filas:[{nombre,codigos,lab}],fuente}), nombres:[...], mapa:{nombre->legajo|'new'|''}}
+function leerInforme(rows,fuente){
   let mes=null,anio=null;
   for(let i=0;i<Math.min(rows.length,10);i++){
     const lab=norm(rows[i][0]);
@@ -262,43 +307,115 @@ function leerAus(rows,nombre){
     if(lab==='ANO'&&typeof rows[i][4]==='number') anio=anio||rows[i][4];
   }
   if(!mes||!anio) throw new Error('no pude leer el mes y el año del encabezado ("PERIODO")');
-  const DIAS=[...Array(15).keys()].map(i=>i+1).concat([...Array(16).keys()].map(i=>i+35));
-  let num=0,den=0,n=0; const cod={};
+  const periodo=anio+'-'+String(mes).padStart(2,'0'),dias=AUS.diasDelMes(periodo);
+  const DIAS=[...Array(15).keys()].map(i=>i+1).concat([...Array(16).keys()].map(i=>i+35)),filas=[];
   rows.slice(9).forEach(r=>{
-    if(!r[0]||typeof r[70]!=='number') return; n++;
-    const c={}; DIAS.forEach(k=>{const v=String(r[k]??'').trim().toUpperCase(); if(v){c[v]=(c[v]||0)+1;cod[v]=(cod[v]||0)+1;}});
-    num+=(c.AA||0)+(c.AS||0)+(c.ILT||0);
-    den+=r[70]-(c.LG||0)-(c.LE||0)-(c.SUS||0);
+    if(!r[0]||typeof r[70]!=='number') return;
+    filas.push({nombre:clean(r[0]),codigos:DIAS.slice(0,dias).map(k=>String(r[k]??'').trim().toUpperCase()),lab:r[70]});
   });
-  if(!n||den<=0) throw new Error('no encontré filas de personal con días laborables');
-  return {periodo:anio+'-'+String(mes).padStart(2,'0'),n,num,den,it:(cod['IT']||0)+(cod['IT-DJ']||0),dj:(cod['DJ']||0)+(cod['IT-DJ']||0),raros:Object.keys(cod).filter(k=>!CONOCIDOS.has(k)),valor:num/den,nombre};
+  if(!filas.length) throw new Error('no encontré filas de personal con días laborables');
+  return [{periodo,filas,fuente}];
+}
+function leerHistorico(rows,fuente){ // hoja "CARGA DE DATOS": una fila por persona y mes
+  const h=rows[0]||[],ix=t=>h.findIndex(x=>norm(x)===t);
+  const iMes=ix('MES'),iAnio=ix('ANO'),iLab=h.map((x,i)=>/^DIAS\s+LABORABLES/.test(norm(x))?i:-1).filter(i=>i>=0);
+  if(iMes<0||iAnio<0||!iLab.length) throw new Error('la hoja no tiene las columnas MES, AÑO y Días laborables');
+  const por=new Map();
+  rows.slice(1).forEach(r=>{
+    const nombre=clean(r[0]),m=MES[norm(r[iMes])],a=Number(r[iAnio]);if(!nombre||!m||!a)return;
+    const periodo=a+'-'+String(m).padStart(2,'0'),dias=AUS.diasDelMes(periodo);
+    const cod=[...Array(dias).keys()].map(i=>String(r[i+1]??'').trim().toUpperCase()),lab=iLab.reduce((s,i)=>s+(Number(r[i])||0),0);
+    if(!por.has(periodo))por.set(periodo,new Map());
+    const mp=por.get(periodo),k=nz(nombre).sort().join(' '),ya=mp.get(k);
+    if(!ya)mp.set(k,{nombre,codigos:cod,lab});
+    else{cod.forEach((c,i)=>{if(c&&!ya.codigos[i])ya.codigos[i]=c;});ya.lab=Math.max(ya.lab,lab);} // la misma persona cargada en dos filas del mismo mes: se unen
+  });
+  return [...por.entries()].map(([periodo,mp])=>({periodo,filas:[...mp.values()],fuente}));
 }
 $('file').onchange=async ev=>{
-  const fs=[...ev.target.files]; if(!fs.length) return; say($('msg'),'Leyendo…'); $('prev').innerHTML=''; $('guardar').classList.add('hide'); datos=[];
-  const fallas=[];
+  const fs=[...ev.target.files]; if(!fs.length) return; say($('msg'),'Leyendo…'); $('prev').innerHTML='';$('mapBox').innerHTML=''; $('guardar').classList.add('hide'); carga=null;
+  const fallas=[],meses=new Map();
   try{
     if(typeof XLSX==='undefined') throw new Error('No se pudo cargar el lector de Excel. Revisá la conexión a internet.');
     for(const f of fs){
-      try{const wb=XLSX.read(await f.arrayBuffer(),{});datos.push(leerAus(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''}),f.name));}
-      catch(e){fallas.push(f.name+': '+e.message);}
+      try{
+        const wb=XLSX.read(await f.arrayBuffer(),{});
+        const hs=wb.SheetNames.find(n=>/^carga de datos$/i.test(n));
+        const lst=hs?leerHistorico(filasHoja(wb.Sheets[hs]),f.name):leerInforme(filasHoja(wb.Sheets[wb.SheetNames[0]]),f.name);
+        lst.forEach(m=>{if(meses.has(m.periodo))fallas.push(f.name+': el mes '+m.periodo+' está repetido, se usa el primero');else meses.set(m.periodo,m);});
+      }catch(e){fallas.push(f.name+': '+e.message);}
     }
-    const vistos=new Set();datos=datos.filter(d=>{if(vistos.has(d.periodo)){fallas.push(d.nombre+': el mes '+d.periodo+' está repetido, se usa el primero');return false;}vistos.add(d.periodo);return true;}).sort((a,b)=>a.periodo<b.periodo?-1:1);
-    if(!datos.length) throw new Error('Ningún archivo se pudo leer. '+fallas.join(' · '));
-    const raros=[...new Set(datos.flatMap(d=>d.raros))];
-    $('prev').innerHTML='<div class="tbl"><table><thead><tr><th>Mes</th><th>Personal</th><th>Días ausentes</th><th>Días laborables</th><th>IT</th><th>DJ</th><th>Ausentismo</th></tr></thead><tbody>'+datos.map(d=>`<tr><td>${d.periodo}</td><td>${d.n}</td><td>${d.num}</td><td>${d.den}</td><td>${d.it}</td><td>${d.dj}</td><td class="${d.valor<0.05?'ok':'off'}">${(d.valor*100).toFixed(2).replace('.',',')}%</td></tr>`).join('')+'</tbody></table></div><p class="note">IT (ingresos tarde) y DJ (demoras en la jornada) son solo informativos: no cuentan como ausencia.</p>';
-    say($('msg'),(fallas.length?'Atención: '+fallas.join(' · ')+'. ':'')+(raros.length?'Hay códigos que no están en el procedimiento ('+raros.join(', ')+'). Consultá con Gestión de calidad antes de guardar. ':'')+'Revisá que los meses y porcentajes sean los esperados.',fallas.length?'err':'');
-    $('guardar').textContent=datos.length>1?'Guardar los '+datos.length+' meses':'Guardar '+datos[0].periodo; $('guardar').classList.remove('hide');
+    if(!meses.size) throw new Error('Ningún archivo se pudo leer. '+fallas.join(' · '));
+    await cargarPersonal().catch(()=>{});
+    const nombres=[...new Set([...meses.values()].flatMap(m=>m.filas.map(f=>f.nombre)))].sort((a,b)=>a.localeCompare(b,'es'));
+    const al=aliasLS.get(),mapa={};
+    nombres.forEach(n=>{
+      if(al[n]&&S.personal.some(p=>p.legajo===al[n])){mapa[n]=al[n];return;}
+      const c=S.personal.filter(p=>coincide(nz(n),nz(p.nombre)));mapa[n]=c.length===1?c[0].legajo:'';
+    });
+    carga={meses,nombres,mapa};
+    const orden=[...meses.keys()].sort(),desc=new Set();
+    const agg=orden.map(p=>{const m=meses.get(p),a=AUS.agregarMes(m.filas),cs=m.filas.map(f=>AUS.contar(f.codigos,f.lab));cs.forEach(c=>c.desconocidos.forEach(d=>desc.add(d)));
+      return {p,n:m.filas.length,a,it:sum(cs.map(c=>c.it)),dj:sum(cs.map(c=>c.dj)),ilt:sum(cs.map(c=>c.ilt))};});
+    $('prev').innerHTML='<div class="tbl"><table><thead><tr><th>Mes</th><th>Personal</th><th>Días ausentes</th><th>Días laborables netos</th><th>ILT</th><th>IT</th><th>DJ</th><th>Ausentismo</th></tr></thead><tbody>'+agg.map(x=>`<tr><td>${x.p}</td><td>${x.n}</td><td>${x.a.num}</td><td>${x.a.den}</td><td>${x.ilt}</td><td>${x.it}</td><td>${x.dj}</td><td class="${x.a.valor<0.05?'ok':'off'}">${(x.a.valor*100).toFixed(2).replace('.',',')}%</td></tr>`).join('')+'</tbody></table></div><p class="note">ILT = días de accidente o enfermedad (cuentan como ausencia del indicador). IT (ingresos tarde) y DJ (demoras en la jornada) son solo informativos.</p>';
+    renderMapa();
+    say($('msg'),(fallas.length?'Atención: '+fallas.join(' · ')+'. ':'')+(desc.size?'Hay códigos que no están en el procedimiento y no se cuentan ('+[...desc].join(', ')+'). ':'')+'Revisá los meses y asociá cada nombre con una persona antes de guardar.',fallas.length?'err':'');
   }catch(e){say($('msg'),e.message,'err');}
 };
+const sum=a=>a.reduce((x,y)=>x+y,0);
+function renderMapa(){
+  const {nombres,mapa}=carga,pend=nombres.filter(n=>mapa[n]===''||mapa[n]===undefined).length;
+  const opt=n=>`<option value="">— elegir —</option>`+S.personal.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre,'es')).map(p=>`<option value="${p.legajo}"${mapa[n]===p.legajo?' selected':''}>${esc(p.nombre)} (Nº ${p.legajo})</option>`).join('')+`<option value="new"${mapa[n]==='new'?' selected':''}>＋ Es una persona nueva…</option>`;
+  $('mapBox').innerHTML=`<h2 style="margin-top:14px">Personas del informe (${nombres.length})</h2><p class="note">Cada nombre del Excel se asocia con una persona de la lista de Personal. Se recuerda para los próximos meses.${S.personal.length?'':' La lista de Personal está vacía: cargala primero desde Capacitación (A.26) o agregá a la persona con "Es una persona nueva".'}</p><div class="tbl"><table><thead><tr><th class="l">Nombre en el Excel</th><th class="l">Persona</th></tr></thead><tbody>${nombres.map((n,i)=>`<tr><td class="l">${esc(n)}</td><td class="l"><select data-m="${i}">${opt(n)}</select>${mapa[n]==='new'?`<input type="text" data-nl="${i}" placeholder="Nº Op" style="width:90px;margin-left:6px" inputmode="numeric" value="${esc(carga.nuevos?.[n]||'')}">`:''}</td></tr>`).join('')}</tbody></table></div>`;
+  $('guardar').textContent=carga.meses.size>1?'Guardar los '+carga.meses.size+' meses':'Guardar '+[...carga.meses.keys()][0];
+  $('guardar').classList.toggle('hide',pend>0);
+  if(pend) $('mapBox').insertAdjacentHTML('beforeend',`<p class="warn">Faltan asociar ${pend} nombre(s) para poder guardar.</p>`);
+}
+function setNuevo(inp){
+  const n=carga.nombres[Number(inp.dataset.nl)];carga.nuevos=carga.nuevos||{};carga.nuevos[n]=inp.value;
+  carga.nombres.forEach((o,k)=>{if(o!==n&&carga.mapa[o]==='new'&&coincide(nz(n),nz(o))){carga.nuevos[o]=inp.value;const e=document.querySelector(`#mapBox input[data-nl="${k}"]`);if(e&&e!==inp)e.value=inp.value;}});
+}
+$('mapBox').onchange=ev=>{
+  const sel=ev.target.closest('select[data-m]');if(sel){const n=carga.nombres[Number(sel.dataset.m)],v=sel.value==='new'?'new':sel.value===''?'':Number(sel.value);carga.mapa[n]=v;
+    if(v!=='')carga.nombres.forEach(o=>{if(o!==n&&carga.mapa[o]===''&&coincide(nz(n),nz(o)))carga.mapa[o]=v;}); // "Damian Corsi" y "Corsi Damian"
+    renderMapa();return;}
+  const inp=ev.target.closest('input[data-nl]');if(inp)setNuevo(inp);
+};
+$('mapBox').oninput=ev=>{const inp=ev.target.closest('input[data-nl]');if(inp)setNuevo(inp);};
 $('guardar').onclick=async()=>{
+  const m=$('msg');
   try{
-    say($('msg'),'Guardando…');
-    const valores=datos.map(d=>({indicador:'ausentismo',periodo:d.periodo,valor:d.valor,num:d.num,den:d.den,fuente:'Informe RRHH '+d.nombre}));
+    const {meses,nombres,mapa}=carga,nuevos=carga.nuevos||{};
+    // 1) personas nuevas
+    const alta=[];
+    for(const n of nombres){ if(mapa[n]==='new'){const l=Number(nuevos[n]);if(!Number.isInteger(l)||l<=0)throw new Error('Falta el Nº Op de '+n+'.');if(S.personal.some(p=>p.legajo===l)&&!alta.some(a=>a.legajo===l))throw new Error('El Nº Op '+l+' ya existe en Personal; elegila de la lista.');if(!alta.some(a=>a.legajo===l))alta.push({legajo:l,nombre:n,activo:true});mapa[n]=l;} }
+    if(alta.length){say(m,'Agregando personal…');await api('/api/rrhh/personal',{method:'PUT',body:JSON.stringify({personal:alta})});await cargarPersonal();}
+    // 2) agregado del mes para el Apéndice C
+    const orden=[...meses.keys()].sort();
+    say(m,'Guardando totales de '+orden.length+' mes(es)…');
+    const valores=orden.map(p=>{const mm=meses.get(p),a=AUS.agregarMes(mm.filas);return {indicador:'ausentismo',periodo:p,valor:a.valor,num:a.num,den:a.den,fuente:'Informe RRHH '+mm.fuente};});
     const r=await api('/api/apc/valores',{method:'PUT',body:JSON.stringify({valores})});
     const rech=r.rechazados||[];
-    say($('msg'),rech.length?('Guardados '+(valores.length-rech.length)+'. No se guardó: '+rech.map(x=>(x.periodo||x.mes||'')+' ('+x.motivo+')').join('; ')+'. Consultá con Gestión de calidad.'):'Listo: quedaron guardados '+valores.length+' mes(es).',rech.length?'err':'okk');
-    $('guardar').classList.add('hide'); $('file').value=''; historial();
-  }catch(e){say($('msg'),e.message,'err');}
+    // 3) por persona
+    const al=aliasLS.get();nombres.forEach(n=>{al[n]=mapa[n];});aliasLS.set(al);
+    let sinPermiso=false,k=0;
+    for(const p of orden){
+      if(rech.some(x=>(x.periodo||x.mes)===p))continue;
+      say(m,'Guardando personas de '+p+' ('+(++k)+' de '+orden.length+')…');
+      const por=new Map();
+      meses.get(p).filas.forEach(f=>{const l=mapa[f.nombre],y=por.get(l);
+        if(!y)por.set(l,{legajo:l,codigos:f.codigos.slice(),laborables:f.lab});else{f.codigos.forEach((c,i)=>{if(c&&!y.codigos[i])y.codigos[i]=c;});y.laborables=Math.max(y.laborables,f.lab);}});
+      const filas=[...por.values()];
+      for(let i=0;i<filas.length;i+=20){
+        try{await api('/api/rrhh/aus-personas',{method:'PUT',body:JSON.stringify({periodo:p,filas:filas.slice(i,i+20),fuente:meses.get(p).fuente})});}
+        catch(e){if(/permiso/i.test(e.message)){sinPermiso=true;break;}throw e;}
+      }
+      if(sinPermiso)break;
+    }
+    const txt=(rech.length?'Totales: no se guardaron '+rech.map(x=>(x.periodo||x.mes||'')+' ('+x.motivo+')').join('; ')+'. ':'')+(sinPermiso?'Esta cuenta no tiene permiso para guardar el detalle por persona; se guardaron solo los totales. ':'');
+    say(m,txt?('Listo con avisos. '+txt):'Listo: quedaron guardados '+orden.length+' mes(es), con el detalle por persona.',txt?'err':'okk');
+    $('guardar').classList.add('hide'); $('mapBox').innerHTML=''; $('file').value=''; P.cargado=false; historial();
+  }catch(e){say(m,e.message,'err');}
 };
 
 /* ================= CAPACITACIÓN ================= */
@@ -320,11 +437,12 @@ const S={anio:AÑO,caps:[],personal:[],cargado:false,edit:null,A:new Map()};
 const capMsg=(t,c)=>say($('capMsg'),t,c);
 
 function tab(n){
-  $('ausT').classList.toggle('hide',n!=='aus');$('capT').classList.toggle('hide',n!=='cap');
-  $('tAus').classList.toggle('on',n==='aus');$('tCap').classList.toggle('on',n==='cap');
+  $('ausT').classList.toggle('hide',n!=='aus');$('capT').classList.toggle('hide',n!=='cap');$('pesT').classList.toggle('hide',n!=='pes');
+  $('tAus').classList.toggle('on',n==='aus');$('tCap').classList.toggle('on',n==='cap');$('tPes').classList.toggle('on',n==='pes');
   if(n==='cap'&&!S.cargado) cargarCaps();
+  if(n==='pes'&&!P.cargado) cargarPersonas();
 }
-$('tAus').onclick=()=>tab('aus');$('tCap').onclick=()=>tab('cap');
+$('tAus').onclick=()=>tab('aus');$('tCap').onclick=()=>tab('cap');$('tPes').onclick=()=>tab('pes');
 
 async function cargarPersonal(){S.personal=await api('/api/rrhh/personal');renderPersonal();}
 async function cargarCaps(){
@@ -600,6 +718,81 @@ async function guardar26(){
     S.anio=anio;$('capAnio').value=anio;await cargarPersonal();S.caps=await api('/api/rrhh/capacitaciones?anio='+anio);renderCaps();
   }catch(e){say(m,e.message,'err');}
 }
+
+/* ================= PERSONAS: análisis individual ================= */
+const P={cargado:false,rows:[],hasta:null,umb:{...AUS.UMBRALES},fila:[]};
+try{Object.assign(P.umb,JSON.parse(localStorage.getItem('aus_umbrales')||'{}'));}catch{}
+const UMB_LBL={bradAtencion:'Bradford: observación',bradConversar:'Bradford: conversar',bradFormal:'Bradford: medida formal',itMin:'Ingresos tarde: mínimo en 3 meses',djMin:'Demoras en jornada: mínimo en 3 meses',vsPlanta:'Veces el promedio de planta (IT/DJ)',concentracion:'Concentración lunes/viernes (0 a 1)',minAusConc:'Ausencias mínimas para evaluar concentración'};
+$('pUmb').innerHTML=Object.keys(UMB_LBL).map(k=>`<div><label>${UMB_LBL[k]}</label><input type="text" data-u="${k}" value="${P.umb[k]}"></div>`).join('')+'<div class="span2"><button class="btn sm" id="pUmbRst" type="button">Volver a los valores por defecto</button></div>';
+$('pUmb').oninput=ev=>{const k=ev.target.dataset.u;if(!k)return;const v=Number(String(ev.target.value).replace(',','.'));if(Number.isFinite(v)){P.umb[k]=v;try{localStorage.setItem('aus_umbrales',JSON.stringify(P.umb));}catch{}renderPersonas();}};
+$('pUmb').onclick=ev=>{if(ev.target.id==='pUmbRst'){P.umb={...AUS.UMBRALES};try{localStorage.removeItem('aus_umbrales');}catch{}$('pUmb').querySelectorAll('input[data-u]').forEach(i=>i.value=P.umb[i.dataset.u]);renderPersonas();}};
+
+async function cargarPersonas(){
+  try{
+    say($('pMsg'),'Cargando…');
+    const [rows]=await Promise.all([api('/api/rrhh/aus-personas?desde=2000-01'),cargarPersonal()]);
+    P.rows=rows;P.cargado=true;
+    const per=[...new Set(rows.map(r=>r.periodo))].sort().reverse();
+    $('pHasta').innerHTML=per.map(p=>`<option>${p}</option>`).join('');P.hasta=per[0]||null;
+    say($('pMsg'),per.length?'':'Todavía no hay ausentismo por persona cargado. Subí los informes desde la pestaña Ausentismo.');
+    renderPersonas();
+  }catch(e){say($('pMsg'),/permiso/i.test(e.message)?'Tu cuenta no tiene acceso al ausentismo por persona.':e.message,'err');$('pTbl').innerHTML='';}
+}
+$('pHasta').onchange=()=>{P.hasta=$('pHasta').value;renderPersonas();};$('pVent').onchange=renderPersonas;
+const mesesAtras=(p,n)=>{const [y,m]=p.split('-').map(Number),d=new Date(Date.UTC(y,m-1-n,1));return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');};
+const pc=v=>v==null?'—':(v*100).toFixed(1).replace('.',',')+'%';
+function calcular(){
+  if(!P.hasta)return [];
+  const vent=Number($('pVent').value),desde=mesesAtras(P.hasta,vent-1),u3d=mesesAtras(P.hasta,2),a3d=mesesAtras(P.hasta,5),a3h=mesesAtras(P.hasta,3);
+  const pm=new Map(S.personal.map(p=>[p.legajo,p]));
+  const por=new Map();P.rows.forEach(r=>{if(r.periodo<=P.hasta){if(!por.has(r.legajo))por.set(r.legajo,[]);por.get(r.legajo).push(r);}});
+  const win=r=>r.periodo>=desde,ult=r=>r.periodo>=u3d,ant=r=>r.periodo>=a3d&&r.periodo<=a3h;
+  const planta=AUS.resumenPersona([]);let pit=0,pdj=0,pden=0;
+  por.forEach(ms=>ms.filter(ult).forEach(m=>{const c=AUS.contar(m.codigos,m.laborables);pit+=c.it;pdj+=c.dj;pden+=c.den;}));
+  planta.itPorLab=pden?pit/pden:0;planta.djPorLab=pden?pdj/pden:0;
+  const out=[];
+  por.forEach((ms,l)=>{
+    ms.sort((a,b)=>a.periodo<b.periodo?-1:1);const w=ms.filter(win);if(!w.length)return;
+    const r12=AUS.resumenPersona(w),u3=AUS.resumenPersona(ms.filter(ult)),a3=AUS.resumenPersona(ms.filter(ant)),sem=AUS.porDiaSemana(w);
+    out.push({legajo:l,nombre:pm.get(l)?.nombre||('Nº '+l),r:r12,u3,a3,sem,al:AUS.alertas(r12,u3,a3,planta,sem,P.umb),ms});
+  });
+  P.planta=AUS.resumenPersona(P.rows.filter(r=>r.periodo<=P.hasta&&r.periodo>=desde));
+  out.sort((a,b)=>(Math.max(0,...b.al.map(x=>x.n))-Math.max(0,...a.al.map(x=>x.n)))||b.r.bradford-a.r.bradford||a.nombre.localeCompare(b.nombre,'es'));
+  return out;
+}
+function chips(al){return al.length?al.map(a=>`<span class="chip n${a.n}" title="${esc(a.t)}">${{brad:'Ausencias',larga:'Ausencia prolongada',it:'Ingresos tarde',dj:'Demoras',sem:'Lun/Vie',tend:'En aumento'}[a.k]}</span>`).join(''):'<span class="note" style="margin:0">—</span>';}
+function renderPersonas(){
+  if(!P.cargado||!P.hasta){return;}
+  P.fila=calcular();
+  $('pTbl').innerHTML='<thead><tr><th class="l">Persona</th><th>Ausentismo</th><th>Días aus. (AA/AS)</th><th>Episodios</th><th>ILT</th><th>IT</th><th>DJ</th><th>Bradford</th><th class="l">Alertas</th></tr></thead><tbody>'+
+   P.fila.map((x,i)=>`<tr class="clk" data-i="${i}"><td class="l">${esc(x.nombre)}</td><td>${pc(x.r.pct)}</td><td>${x.r.aa+x.r.as}</td><td>${x.r.episodios}</td><td>${x.r.ilt}</td><td>${x.r.it}</td><td>${x.r.dj}</td><td>${x.r.bradford}</td><td class="l">${chips(x.al)}</td></tr>`).join('')+
+   `<tr><td class="l"><b>Planta (total)</b></td><td><b>${pc(P.planta.pct)}</b></td><td>${P.planta.aa+P.planta.as}</td><td>—</td><td>${P.planta.ilt}</td><td>${P.planta.it}</td><td>${P.planta.dj}</td><td>—</td><td></td></tr></tbody>`;
+  if(!$('ficha').classList.contains('hide')&&P.sel!=null){const x=P.fila.find(f=>f.legajo===P.sel);x?ficha(x):$('ficha').classList.add('hide');}
+}
+$('pTbl').onclick=ev=>{const tr=ev.target.closest('tr[data-i]');if(!tr)return;const x=P.fila[Number(tr.dataset.i)];P.sel=x.legajo;ficha(x);$('ficha').scrollIntoView({behavior:'smooth',block:'start'});};
+function barras(vals,cls,etiq){const mx=Math.max(1,...vals);return `<div class="bars">${vals.map((v,i)=>`<div class="${cls}" style="height:${Math.round(v/mx*100)}%" title="${esc(etiq[i])}: ${v}">${v?`<i>${v}</i>`:''}</div>`).join('')}</div>`;}
+function ficha(x){
+  const ms=x.ms,per=ms.map(m=>m.periodo),cs=ms.map(m=>AUS.contar(m.codigos,m.laborables)),dsem=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  $('ficha').classList.remove('hide');
+  $('ficha').innerHTML=`<div class="row noprint"><h2 style="margin:0">Ficha · ${esc(x.nombre)}</h2><span class="sp"></span><button class="btn sm" id="fPrint">Imprimir</button><button class="btn sm" id="fCerrar">Cerrar</button></div>
+  <h2 style="margin:0 0 4px" class="pr-t">Silver Industrial · Seguimiento de ausentismo y retrasos<br><span style="font-size:14px;font-weight:500">${esc(x.nombre)} · Nº Op ${x.legajo}</span></h2>
+  <p class="note">Ventana analizada: ${mesesAtras(P.hasta,Number($('pVent').value)-1)} a ${P.hasta}. Datos del informe mensual de RRHH.</p>
+  <div class="kpi"><span><b>${pc(x.r.pct)}</b> ausentismo</span><span><b>${x.r.aa+x.r.as}</b> días AA/AS en <b>${x.r.episodios}</b> episodios</span><span><b>${x.r.it}</b> ingresos tarde</span><span><b>${x.r.dj}</b> demoras en jornada</span><span><b>${x.r.ilt}</b> días ILT <span class="note">(contexto)</span></span></div>
+  <p class="note">Planta en la misma ventana: ausentismo ${pc(P.planta.pct)}.</p>
+  ${x.al.length?'<ul style="margin:6px 0;padding-left:18px;font-size:13.5px">'+x.al.map(a=>`<li><span class="chip n${a.n}">${{brad:'Ausencias',larga:'Ausencia prolongada',it:'Ingresos tarde',dj:'Demoras',sem:'Lun/Vie',tend:'En aumento'}[a.k]}</span> ${esc(a.t)}</li>`).join('')+'</ul>':'<p class="note">Sin alertas en este período.</p>'}
+  <div class="g2"><div><b style="font-size:13px">Días de ausencia (AA/AS) por mes</b>${barras(cs.map(c=>c.aa+c.as),'',per)}<div class="lbls">${per.map(p=>`<span>${p.slice(5)==='01'?p.slice(2,4):p.slice(5)}</span>`).join('')}</div></div>
+  <div><b style="font-size:13px">Ingresos tarde + demoras por mes</b>${barras(cs.map(c=>c.it+c.dj),'b2',per)}<div class="lbls">${per.map(p=>`<span>${p.slice(5)==='01'?p.slice(2,4):p.slice(5)}</span>`).join('')}</div></div></div>
+  <div style="margin-top:10px;max-width:420px"><b style="font-size:13px">Ausencias AA/AS por día de la semana (ventana)</b>${barras(x.sem.slice(1,6).concat(x.sem[6],x.sem[0]),'',['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'])}<div class="lbls">${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(d=>`<span>${d}</span>`).join('')}</div></div>
+  <div class="tbl" style="margin-top:12px"><table><thead><tr><th>Mes</th><th>Laborables</th><th>AA</th><th>AS</th><th>ILT</th><th>IT</th><th>DJ</th><th>Ausentismo</th></tr></thead><tbody>${ms.map((m,i)=>{const c=cs[i];return `<tr><td>${m.periodo}</td><td>${c.den}</td><td>${c.aa}</td><td>${c.as}</td><td>${c.ilt}</td><td>${c.it}</td><td>${c.dj}</td><td>${c.den>0?pc(c.num/c.den):'—'}</td></tr>`;}).join('')}</tbody></table></div>
+  <p class="priv">Documento confidencial de uso interno (RRHH, Gestión de calidad y dirección). Las ausencias por enfermedad o accidente (ILT) se muestran solo como contexto y no integran el índice ni las alertas. Las alertas son una referencia para conversar y acompañar a tiempo; no constituyen por sí solas una conclusión sobre la persona.</p>`;
+  $('fCerrar').onclick=()=>{$('ficha').classList.add('hide');P.sel=null;};
+  $('fPrint').onclick=()=>{document.body.classList.add('pf');window.print();setTimeout(()=>document.body.classList.remove('pf'),500);};
+}
+$('pCsv').onclick=()=>{
+  const L=[['Persona','Nº Op','Ausentismo','Días AA','Días AS','Episodios','ILT','IT','DJ','Bradford','Alertas']].concat(P.fila.map(x=>[x.nombre,x.legajo,x.r.pct==null?'':(x.r.pct*100).toFixed(2),x.r.aa,x.r.as,x.r.episodios,x.r.ilt,x.r.it,x.r.dj,x.r.bradford,x.al.map(a=>a.t).join(' / ')]));
+  const csv='﻿'+L.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='ausentismo-por-persona-'+P.hasta+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
+};
 
 if(tok.get()){entrar(true);historial();}
 </script>
