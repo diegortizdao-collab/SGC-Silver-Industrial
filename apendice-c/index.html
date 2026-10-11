@@ -169,6 +169,12 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
           <button class="btn" id="salir">Desconectar</button>
         </div>
         <p class="note" id="connMsg"></p></div>
+      <div class="card" id="ausCard"><h3>Cargar ausentismo del mes (RRHH)</h3>
+        <p class="note" style="margin:4px 0 8px">Subí el "Informe mensual de ausentismo y retrasos" (.xls o .xlsx). El cálculo se hace en tu navegador: a Neon solo viaja el total del mes (días ausentes y días laborables), no los nombres ni los días de cada persona.</p>
+        <input type="file" id="ausFile" accept=".xls,.xlsx" style="font:inherit;font-size:13px">
+        <div id="ausOut" style="margin-top:10px"></div>
+        <button class="btn pri" id="ausSubir" style="display:none;margin-top:8px">Guardar en Neon</button>
+        <p class="note" id="ausMsg"></p></div>
       <div class="card" id="impCard"><h3>Importar "Datos para atrasos de entrega"</h3>
         <p class="note" style="margin:4px 0 8px">Subí el .xlsx. Se calcula en tu navegador: OTI pactadas, entregadas (con fecha enviada) y atrasos por mes de entrega pactada. Antes de guardar se muestra la comparación con lo que hay en Neon.</p>
         <input type="file" id="impFile" accept=".xlsx,.xls" style="font:inherit;font-size:13px">
@@ -285,7 +291,7 @@ const API='https://nc-silver-api.diegortizdao.workers.dev';
 const KEY={'Encuesta hacia Silver':'sat_silver','Encuesta respecto de la competencia de Silver':'sat_comp','Quejas':'quejas','Demoras en plazo de entrega':'demoras','% Devoluciones':'devol','Ingresos vs Egresos':'ing_egr','% Scrap':'scrap','Eficiencia de Máquinas':'eficiencia','SET UP (hs por cambio)':'setup','Fallas Internas':'fallas','Evaluación de Proveedores':'proveedores','Cumplimiento del programa de capacitación':'capacitacion','Ausentismo':'ausentismo'};
 AP.forEach(g=>g.rows.forEach(r=>r.k=KEY[r.ind]));
 const SNAP_AP=JSON.stringify(AP), SNAP_SERIE=JSON.stringify(SERIE);
-const store={get(){try{return sessionStorage.getItem('apc_tok')}catch{return null}},set(v){try{v?sessionStorage.setItem('apc_tok',v):sessionStorage.removeItem('apc_tok')}catch{}}};
+const store={rol(){try{return sessionStorage.getItem('apc_rol')}catch{return null}},setRol(v){try{v?sessionStorage.setItem('apc_rol',v):sessionStorage.removeItem('apc_rol')}catch{}},get(){try{return sessionStorage.getItem('apc_tok')}catch{return null}},set(v){try{v?sessionStorage.setItem('apc_tok',v):sessionStorage.removeItem('apc_tok')}catch{}}};
 const $=id=>document.getElementById(id);
 async function api(path,opt={}){
   const r=await fetch(API+path,{...opt,headers:{'Content-Type':'application/json',Authorization:'Bearer '+(store.get()||''),...(opt.headers||{})}});
@@ -349,10 +355,11 @@ $('loginF').onsubmit=async ev=>{
   ev.preventDefault(); msg('Conectando…');
   try{
     const d=await fetch(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('lEmail').value,password:$('lPass').value})}).then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('Error '+r.status));return j;});
-    store.set(d.token); $('lPass').value=''; modoConectado(true,d.email); await cargarApi();
+    store.set(d.token); store.setRol(d.rol||'general'); $('lPass').value=''; modoConectado(true,d.email);
+    if(d.rol==='rrhh'){ vistaRRHH(); msg('Conectado como RRHH: podés cargar el ausentismo del mes.'); } else await cargarApi();
   }catch(e){msg(e.message);}
 };
-$('salir').onclick=()=>{store.set(null);modoConectado(false);SERIE.length=0;JSON.parse(SNAP_SERIE).forEach(x=>SERIE.push(x));AP.length=0;JSON.parse(SNAP_AP).forEach(g=>AP.push(g));AP.forEach(g=>g.rows.forEach(r=>r.k=KEY[r.ind]));planilla();serie();msg('');};
+$('salir').onclick=()=>{store.set(null);store.setRol(null);modoConectado(false);SERIE.length=0;JSON.parse(SNAP_SERIE).forEach(x=>SERIE.push(x));AP.length=0;JSON.parse(SNAP_AP).forEach(g=>AP.push(g));AP.forEach(g=>g.rows.forEach(r=>r.k=KEY[r.ind]));planilla();serie();msg('');};
 $('seed').onclick=async()=>{
   try{
     msg('Cargando…');
@@ -417,7 +424,57 @@ $('impSubir').onclick=async()=>{
     $('impMsg').textContent='Guardados '+r.guardados+' meses.'+(r.rechazados.length?' Rechazados (período cerrado): '+r.rechazados.map(x=>x.mes).join(', ')+'.':''); $('impSubir').style.display='none'; await cargarApi();
   }catch(e){ $('impMsg').textContent=e.message; }
 };
-if(store.get()){ modoConectado(true,'(sesión activa)'); cargarApi().catch(e=>{modoConectado(false);msg(e.message);}); }
+
+// ---------------- Ausentismo (RRHH) ----------------
+let ausDato=null;
+const MESES_N={ENERO:1,FEBRERO:2,MARZO:3,ABRIL:4,MAYO:5,JUNIO:6,JULIO:7,AGOSTO:8,AGSOTO:8,SEPTIEMBRE:9,SETIEMBRE:9,OCTUBRE:10,NOVIEMBRE:11,DICIEMBRE:12};
+const COD_CONOCIDOS=new Set(['D','S','F','DJ','VAC','IT','IT-DJ','JI','EA','LG','LE','SUS','AA','AS','ILT','-','RA']);
+$('ausFile').onchange=async ev=>{
+  const f=ev.target.files[0]; if(!f) return; $('ausMsg').textContent='Leyendo…'; $('ausOut').innerHTML=''; $('ausSubir').style.display='none'; ausDato=null;
+  try{
+    if(typeof XLSX==='undefined') throw new Error('No se pudo cargar el lector de Excel (sin conexión a cdnjs).');
+    const wb=XLSX.read(await f.arrayBuffer(),{});
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''});
+    // período: celda "PERIODO" (ej. "2Da Quincena Marzo 2026") y año
+    let mes=null,anio=null;
+    for(let i=0;i<Math.min(rows.length,10);i++){
+      const lab=normH(rows[i][0]);
+      if(lab==='PERIODO'){ const t=normH(rows[i][4]); Object.keys(MESES_N).forEach(k=>{if(t.includes(k)) mes=MESES_N[k];}); const y=t.match(/20\d\d/); if(y) anio=Number(y[0]); }
+      if(lab==='ANO'&&typeof rows[i][4]==='number') anio=anio||rows[i][4];
+    }
+    if(!mes||!anio) throw new Error('No pude leer el mes y el año del encabezado ("PERIODO"). Revisá que sea el informe mensual.');
+    const DIAS=[...Array(15).keys()].map(i=>i+1).concat([...Array(16).keys()].map(i=>i+35));
+    let num=0,den=0,n=0; const cod={};
+    rows.slice(9).forEach(r=>{
+      if(!r[0]||typeof r[70]!=='number') return; n++;
+      const c={}; DIAS.forEach(k=>{const v=String(r[k]??'').trim().toUpperCase(); if(v){c[v]=(c[v]||0)+1;cod[v]=(cod[v]||0)+1;}});
+      num+=(c.AA||0)+(c.AS||0)+(c.ILT||0);
+      den+=r[70]-(c.LG||0)-(c.LE||0)-(c.SUS||0);
+    });
+    if(!n||den<=0) throw new Error('No encontré filas de personal con días laborables. ¿Es el informe mensual de ausentismo?');
+    const periodo=anio+'-'+String(mes).padStart(2,'0');
+    const raros=Object.keys(cod).filter(k=>!COD_CONOCIDOS.has(k));
+    ausDato={indicador:'ausentismo',periodo,valor:num/den,num,den,fuente:'Informe RRHH '+f.name};
+    const pct=(100*num/den).toFixed(2).replace('.',',')+'%';
+    $('ausOut').innerHTML=`<table class="ser"><tbody><tr><td>Período</td><td><b>${periodo}</b></td></tr><tr><td>Personal</td><td>${n}</td></tr><tr><td>Días ausentes (AA + AS + ILT)</td><td>${num}</td></tr><tr><td>Días laborables netos<small>menos LG, LE y SUS</small></td><td>${den}</td></tr><tr><td>Ausentismo del mes</td><td><b>${pct}</b></td></tr></tbody></table>`;
+    $('ausMsg').textContent=(raros.length?'Atención: códigos que no figuran en el instructivo: '+raros.join(', ')+'. Revisalos antes de guardar. ':'')+'Revisá que el período y el porcentaje sean los esperados.';
+    if(store.get()){ $('ausSubir').style.display='inline-block'; $('ausSubir').textContent='Guardar '+periodo+' en Neon'; } else $('ausMsg').textContent+=' Conectate para guardar.';
+  }catch(e){ $('ausMsg').textContent=e.message; }
+};
+$('ausSubir').onclick=async()=>{
+  try{ $('ausMsg').textContent='Guardando…'; const r=await api('/api/apc/valores',{method:'PUT',body:JSON.stringify({valores:[ausDato]})});
+    if(r.rechazados&&r.rechazados.length){ $('ausMsg').textContent='No se guardó: '+r.rechazados[0].motivo+' ('+ausDato.periodo+').'; return; }
+    $('ausMsg').textContent='Guardado el ausentismo de '+ausDato.periodo+'.'; $('ausSubir').style.display='none';
+    if(store.rol()!=='rrhh') await cargarApi();
+  }catch(e){ $('ausMsg').textContent=e.message; }
+};
+// Cuenta de RRHH: solo ve la carga de ausentismo
+function vistaRRHH(){
+  $('impCard').style.display='none'; $('seed').style.display='none'; $('cerrar').parentElement.style.display='none';
+  const sec=document.querySelector('nav.tabs button[data-p=p-est]'); if(sec) sec.click();
+}
+if(store.get()&&store.rol()==='rrhh'){ modoConectado(true,'(sesión RRHH)'); vistaRRHH(); }
+else if(store.get()){ modoConectado(true,'(sesión activa)'); cargarApi().catch(e=>{modoConectado(false);msg(e.message);}); }
 </script>
 </body>
 </html>
