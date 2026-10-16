@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="a14.js"></script>
+<script src="a18.js"></script>
 <script src="aus.js"></script>
 <style>
 :root{
@@ -178,6 +179,7 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
       <label for="capAnio" style="margin:0">Año</label>
       <select id="capAnio" style="width:auto"></select>
       <span class="sp"></span>
+      <button class="btn" id="capA18" title="Descarga el programa del año en el formato del A.18">⬇ Descargar A.18 (Excel)</button>
       <button class="btn pri" id="capNueva">+ Nueva capacitación</button>
     </div>
     <div class="kpi" id="capKpi"></div>
@@ -538,6 +540,19 @@ $('edA14').onclick=async()=>{
   catch(e){say($('edMsg'),e.message,'err');}
 };
 
+
+async function bajarA18(){
+  if(typeof JSZip==='undefined') throw new Error('No se pudo cargar la librería de Excel. Revisá la conexión a internet.');
+  const anio=S.anio,lista=await api('/api/rrhh/capacitaciones?anio='+anio);
+  const fil=lista.filter(c=>c.programada).sort((a,b)=>String(iso10(a.fecha_plan)||iso10(a.fecha_real)||'9999').localeCompare(String(iso10(b.fecha_plan)||iso10(b.fecha_real)||'9999'))||a.id-b.id)
+    .map(c=>({tema:c.tema,instructor:c.instructor,tipo:c.tipo,fecha_plan:iso10(c.fecha_plan),periodo_plan:c.periodo_plan,destinatarios:c.destinatarios,lugar:c.lugar,estado:c.estado,fecha_real:iso10(c.fecha_real),observaciones:c.observaciones}));
+  if(!fil.length) throw new Error('No hay capacitaciones programadas en '+anio+'.');
+  const r=await fetch('A18.xlsx');if(!r.ok)throw new Error('No se encontró la plantilla A18.xlsx');
+  const blob=await llenarA18(await r.arrayBuffer(),{anio,filas:fil});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='A.18 Programa de capacitación '+anio+'.xlsx';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
+}
+$('capA18').onclick=async()=>{try{capMsg('Generando A.18…');await bajarA18();capMsg('');}catch(e){capMsg(e.message,'err');}};
 async function bajarA14(c,asistentes){
   if(typeof JSZip==='undefined') throw new Error('No se pudo cargar la librería de Word. Revisá la conexión a internet.');
   const r=await fetch('A14.docx');if(!r.ok)throw new Error('No se encontró la plantilla A14.docx');
