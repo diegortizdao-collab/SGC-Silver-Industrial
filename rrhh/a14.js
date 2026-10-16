@@ -46,6 +46,25 @@
       const rpr = kids(ppr, 'rPr')[0]; rpr ? ppr.insertBefore(jc, rpr) : ppr.appendChild(jc);
     }
   }
+
+  // ---- firmas escaneadas (PNG) incrustadas como imagen en línea ----
+  const NS_WP='http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing', NS_A='http://schemas.openxmlformats.org/drawingml/2006/main',
+        NS_PIC='http://schemas.openxmlformats.org/drawingml/2006/picture', NS_R='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  function dimPng(b){ const v = new DataView(b.buffer, b.byteOffset, b.byteLength); return [v.getUint32(16), v.getUint32(20)]; }
+  function dibujo(doc, rid, id, nombre, w, h, altoCm) {
+    const alto = Math.round(altoCm * 360000), ancho = Math.round(alto * w / h);
+    const E = (ns, q, at = {}, hijos = []) => { const e = doc.createElementNS(ns, q); for (const k in at) e.setAttribute(k, at[k]); hijos.forEach(x => e.appendChild(x)); return e; };
+    const pic = E(NS_PIC, 'pic:pic', {}, [
+      E(NS_PIC, 'pic:nvPicPr', {}, [E(NS_PIC, 'pic:cNvPr', { id, name: nombre }), E(NS_PIC, 'pic:cNvPicPr')]),
+      E(NS_PIC, 'pic:blipFill', {}, [(() => { const b = doc.createElementNS(NS_A, 'a:blip'); b.setAttributeNS(NS_R, 'r:embed', rid); return b; })(), E(NS_A, 'a:stretch', {}, [E(NS_A, 'a:fillRect')])]),
+      E(NS_PIC, 'pic:spPr', {}, [E(NS_A, 'a:xfrm', {}, [E(NS_A, 'a:off', { x: 0, y: 0 }), E(NS_A, 'a:ext', { cx: ancho, cy: alto })]), E(NS_A, 'a:prstGeom', { prst: 'rect' }, [E(NS_A, 'a:avLst')])]),
+    ]);
+    const inline = E(NS_WP, 'wp:inline', { distT: 0, distB: 0, distL: 0, distR: 0 }, [
+      E(NS_WP, 'wp:extent', { cx: ancho, cy: alto }), E(NS_WP, 'wp:docPr', { id, name: nombre }),
+      E(NS_A, 'a:graphic', {}, [E(NS_A, 'a:graphicData', { uri: NS_PIC }, [pic])]),
+    ]);
+    const r = mk(doc, 'r'); r.appendChild(mk(doc, 'drawing')).appendChild(inline); return r;
+  }
   const celdas = tr => kids(tr, 'tc');
   const parrafos = tc => kids(tc, 'p');
 
@@ -106,6 +125,29 @@
     }
     // Acciones en caso de no efectividad
     if (d.efect_acciones) run(doc, parrafos(celdas(kids(T[5], 'tr')[0])[0])[1], d.efect_acciones);
+
+    // Firmas (opcionales): d.firma_expositor / d.firma_evaluador = Uint8Array PNG
+    const imgs = [];
+    const agregar = (bytes, p, alto) => {
+      const n = imgs.length + 1, [w, h] = dimPng(bytes), rid = 'rIdFirma' + n;
+      imgs.push({ n, bytes, rid }); p.appendChild(dibujo(doc, rid, 9000 + n, 'firma' + n + '.png', w, h, alto));
+    };
+    if (d.firma_expositor) {
+      const fe = kids(T[3], 'tr'); const c0 = celdas(fe[fe.length - 1])[0];
+      const p = parrafos(c0)[0]; centrar(doc, p); agregar(d.firma_expositor, p, 1.3);
+    }
+    if (d.firma_evaluador) {
+      const pf = ps.find(p => /Firma del evaluador/.test(txt(p)));
+      if (pf) agregar(d.firma_evaluador, pf, 1.1);
+    }
+    if (imgs.length) {
+      let rels = await zip.file('word/_rels/document.xml.rels').async('string');
+      let ct = await zip.file('[Content_Types].xml').async('string');
+      imgs.forEach(i => { zip.file('word/media/firma' + i.n + '.png', i.bytes);
+        rels = rels.replace('</Relationships>', `<Relationship Id="${i.rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/firma${i.n}.png"/></Relationships>`); });
+      if (!/Extension="png"/i.test(ct)) ct = ct.replace(/(<Types[^>]*>)/, '$1<Default Extension="png" ContentType="image/png"/>');
+      zip.file('word/_rels/document.xml.rels', rels); zip.file('[Content_Types].xml', ct);
+    }
 
     zip.file('word/document.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + new XMLSerializer().serializeToString(doc).replace(/^<\?xml[^>]*\?>\s*/, ''));
     return zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', compression: 'DEFLATE' });

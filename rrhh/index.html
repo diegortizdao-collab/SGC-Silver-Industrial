@@ -220,6 +220,8 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
       <div class="span2"><label>Evaluación</label><textarea id="e_efect_evaluacion"></textarea></div>
       <div><label>Capacitación efectiva</label><select id="e_efect_efectiva"><option value="">Sin evaluar</option><option value="1">Sí</option><option value="0">No</option></select></div>
       <div><label>Evaluador</label><input type="text" id="e_efect_evaluador"></div>
+      <div class="firmaSel hide"><label>Firma del expositor / responsable (A.14)</label><select id="e_firma_exp"><option value="">Ninguna (firma a mano)</option></select></div>
+      <div class="firmaSel hide"><label>Firma del evaluador (A.14)</label><select id="e_firma_eva"><option value="">Ninguna (firma a mano)</option></select></div>
       <div class="span2"><label>Acciones en caso de no efectividad</label><textarea id="e_efect_acciones"></textarea></div>
     </div>
     <div class="row" style="margin-top:14px">
@@ -250,6 +252,14 @@ footer{border-top:1px solid var(--border);padding:18px 0 28px;color:var(--dim);f
       <p class="msg" id="perMsg"></p>
     </details>
   </section>
+  <section class="card hide" id="firC">
+    <details id="firD"><summary>Firmas escaneadas (<span id="firN">0</span>)</summary>
+      <p class="note">Se guardan en un almacenamiento privado (no en el repositorio público) y solo las ven las cuentas de Gestión de calidad. Subí un PNG con fondo transparente; usalo solo con autorización de cada persona.</p>
+      <div id="firL"></div>
+      <form id="firF" class="row" style="max-width:none"><input type="text" id="firNom" placeholder="Nombre (ej.: Diego Ortiz)" style="flex:1;min-width:200px" required><input type="file" id="firArch" accept="image/png" required><button class="btn pri" type="submit">Subir firma</button></form>
+      <p class="msg" id="firMsg"></p>
+    </details>
+  </section>
 </div>
 
 </main>
@@ -277,7 +287,7 @@ $('loginF').onsubmit=async ev=>{
   try{
     const r=await fetch(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('lEmail').value,password:$('lPass').value})});
     const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||'No se pudo ingresar');
-    tok.set(d.token); $('lPass').value=''; say($('loginMsg'),''); entrar(true); historial();
+    tok.set(d.token); $('lPass').value=''; say($('loginMsg'),''); entrar(true); historial(); cargarFirmas();
   }catch(e){say($('loginMsg'),e.message,'err');}
 };
 $('salir').onclick=()=>{tok.set(null);entrar(false);};
@@ -553,10 +563,43 @@ async function bajarA18(){
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
 }
 $('capA18').onclick=async()=>{try{capMsg('Generando A.18…');await bajarA18();capMsg('');}catch(e){capMsg(e.message,'err');}};
+
+/* ---- firmas (R2 privado vía Worker; solo cuentas de Gestión de calidad) ---- */
+const FIR={lista:[],ok:false};
+const slug=n=>String(n).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+async function cargarFirmas(){
+  try{FIR.lista=await api('/api/firmas');FIR.ok=true;}catch(e){FIR.lista=[];FIR.ok=false;}
+  $('firC').classList.toggle('hide',!FIR.ok);document.querySelectorAll('.firmaSel').forEach(x=>x.classList.toggle('hide',!FIR.ok||!FIR.lista.length));
+  $('firN').textContent=FIR.lista.length;
+  $('firL').innerHTML=FIR.lista.map(f=>`<div class="row" style="align-items:center;gap:8px;margin:4px 0"><span style="flex:1">${esc(f.nombre||f.id)} <small>(${f.id})</small></span><button class="btn" data-fdel="${f.id}">Eliminar</button></div>`).join('');
+  ['e_firma_exp','e_firma_eva'].forEach(id=>{const sel=$(id),v=sel.value;sel.innerHTML='<option value="">Ninguna (firma a mano)</option>'+FIR.lista.map(f=>`<option value="${f.id}">${esc(f.nombre||f.id)}</option>`).join('');sel.value=v;});
+}
+async function bytesFirma(id){
+  if(!id)return null;
+  const r=await fetch(API+'/api/firmas/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+(tok.get()||'')}});
+  if(!r.ok)throw new Error('No se pudo leer la firma ('+r.status+').');
+  return new Uint8Array(await r.arrayBuffer());
+}
+$('firF').onsubmit=async ev=>{
+  ev.preventDefault();const m=$('firMsg'),nom=clean($('firNom').value),f=$('firArch').files[0];
+  try{if(!f)throw new Error('Elegí un archivo PNG.');if(f.size>600*1024)throw new Error('El PNG pesa más de 600 KB.');
+    const id=slug(nom);if(id.length<2)throw new Error('Nombre inválido.');
+    say(m,'Subiendo…');
+    const r=await fetch(API+'/api/firmas/'+id+'?nombre='+encodeURIComponent(nom),{method:'PUT',headers:{'Content-Type':'image/png',Authorization:'Bearer '+(tok.get()||'')},body:f});
+    const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('Error '+r.status));
+    $('firNom').value='';$('firArch').value='';await cargarFirmas();say(m,'Firma guardada.','okk');}
+  catch(e){say(m,e.message,'err');}
+};
+$('firL').onclick=async ev=>{
+  const id=ev.target.dataset&&ev.target.dataset.fdel;if(!id||!confirm('¿Eliminar la firma "'+id+'"?'))return;
+  try{await api('/api/firmas/'+id,{method:'DELETE'});await cargarFirmas();}catch(e){say($('firMsg'),e.message,'err');}
+};
 async function bajarA14(c,asistentes){
   if(typeof JSZip==='undefined') throw new Error('No se pudo cargar la librería de Word. Revisá la conexión a internet.');
   const r=await fetch('A14.docx');if(!r.ok)throw new Error('No se encontró la plantilla A14.docx');
+  const fExp=await bytesFirma($('e_firma_exp').value),fEva=await bytesFirma($('e_firma_eva').value);
   const blob=await llenarA14(await r.arrayBuffer(),{
+    firma_expositor:fExp,firma_evaluador:fEva,
     fecha_real:iso10(c.fecha_real),duracion:c.duracion,temas:c.temas,
     asistentes:(asistentes||[]).map(a=>({nombre:a.nombre,calificacion:a.calificacion,observaciones:a.observaciones})),
     efect_fecha_programada:iso10(c.efect_fecha_programada),efect_evaluacion:c.efect_evaluacion,
@@ -809,7 +852,7 @@ $('pCsv').onclick=()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='ausentismo-por-persona-'+P.hasta+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
 };
 
-if(tok.get()){entrar(true);historial();}
+if(tok.get()){entrar(true);historial();cargarFirmas();}
 </script>
 </body>
 </html>
