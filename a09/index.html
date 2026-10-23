@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>A.09 Lista Maestra de Instrumentos</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: ficha de registro A.09 como tablero. Resumen de estado arriba, un renglón por instrumento con barra de vida de calibración, y panel de trazabilidad (certificado, patrones, historial) que se abre en cada renglón. */
+:root {
+  --bg: #0e1215;
+  --surface: #151b1f;
+  --surface-2: #1b2328;
+  --line: #2a353b;
+  --fg: #e5ecee;
+  --muted: #8b9ba3;
+  --accent: #6fb7d8;
+  --ok: #3fcf8e;
+  --ok-bg: rgba(63, 207, 142, .12);
+  --warn: #f2b53a;
+  --warn-bg: rgba(242, 181, 58, .13);
+  --bad: #f0615f;
+  --bad-bg: rgba(240, 97, 95, .13);
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #eef2f3; --surface: #ffffff; --surface-2: #f4f7f8; --line: #d3dde1;
+    --fg: #13202a; --muted: #56676f; --accent: #14688f;
+    --ok: #0f7a4d; --ok-bg: rgba(15, 122, 77, .11);
+    --warn: #8f5f00; --warn-bg: rgba(200, 140, 10, .16);
+    --bad: #b3261e; --bad-bg: rgba(179, 38, 30, .10);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #eef2f3; --surface: #ffffff; --surface-2: #f4f7f8; --line: #d3dde1;
+  --fg: #13202a; --muted: #56676f; --accent: #14688f;
+  --ok: #0f7a4d; --ok-bg: rgba(15, 122, 77, .11);
+  --warn: #8f5f00; --warn-bg: rgba(200, 140, 10, .16);
+  --bad: #b3261e; --bad-bg: rgba(179, 38, 30, .10);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font: 15px/1.45 var(--f-body);
+  padding-block: 28px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+header.top { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: flex-end; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 18px; }
+.eyebrow { font: 500 12px/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 8px 0 0; font: 700 clamp(30px, 5vw, 46px)/1 var(--f-display); letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; }
+h1 span { color: var(--accent); }
+.meta { display: flex; gap: 22px; flex-wrap: wrap; font: 400 12.5px/1.4 var(--f-mono); color: var(--muted); }
+.meta b { display: block; color: var(--fg); font-weight: 500; font-size: 14px; }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; }
+.tile .n { font: 700 44px/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.tile .l { font-size: 13px; color: var(--muted); line-height: 1.3; }
+.tile .l b { display: block; color: var(--fg); font: 600 14px var(--f-body); text-transform: uppercase; letter-spacing: .06em; }
+.tile.ok .n { color: var(--ok); } .tile.warn .n { color: var(--warn); } .tile.bad .n { color: var(--bad); }
+
+.alert { background: var(--bad-bg); border: 1px solid var(--bad); border-radius: 6px; padding: 12px 16px; font-size: 14px; }
+.alert[hidden] { display: none; }
+.alert b { color: var(--bad); }
+
+.bar { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 13px var(--f-body); background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.chip[aria-pressed="true"] { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.bar .lbl { font: 500 11px var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+.colhead, .row-main { display: grid; gap: 14px; align-items: center; grid-template-columns: minmax(190px, 1.5fr) minmax(130px, 1fr) minmax(150px, 1.1fr) minmax(190px, 1.3fr) minmax(130px, .9fr) 34px; }
+.colhead { padding: 0 16px; font: 500 11px var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.row { background: var(--surface); border: 1px solid var(--line); border-left-width: 5px; border-radius: 6px; }
+.row.ok { border-left-color: var(--ok); } .row.warn { border-left-color: var(--warn); } .row.bad { border-left-color: var(--bad); }
+.row.baja { border-left-color: var(--muted); } .row.baja .row-main { opacity: .72; }
+.pill.baja { color: var(--muted); background: var(--surface-2); border: 1px solid var(--line); }
+.row-main { padding: 14px 16px; }
+.row-main > * { min-width: 0; }
+.cod { font: 700 28px/1 var(--f-display); letter-spacing: .02em; }
+.cod small { display: block; font: 400 12.5px/1.4 var(--f-body); color: var(--muted); letter-spacing: 0; margin-top: 4px; }
+.kv { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.kv b { color: var(--fg); font-weight: 500; }
+.dates { font: 400 13px/1.55 var(--f-mono); font-variant-numeric: tabular-nums; }
+.dates span { color: var(--muted); display: inline-block; width: 6.2em; }
+.life { height: 5px; background: var(--line); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.life i { display: block; height: 100%; border-radius: 3px; background: var(--ok); }
+.row.warn .life i { background: var(--warn); } .row.bad .life i { background: var(--bad); }
+.pill { display: inline-flex; align-items: center; gap: 8px; font: 600 13px/1.25 var(--f-body); padding: 6px 12px; border-radius: 4px; }
+.pill::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
+.pill.ok { color: var(--ok); background: var(--ok-bg); } .pill.warn { color: var(--warn); background: var(--warn-bg); } .pill.bad { color: var(--bad); background: var(--bad-bg); }
+.sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
+.docs { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.btn { display: inline-flex; align-items: center; gap: 7px; font: 500 13px var(--f-body); color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; padding: 6px 11px; text-decoration: none; background: transparent; }
+.btn:hover { background: var(--accent); color: var(--bg); }
+.trace { font: 400 11.5px var(--f-mono); color: var(--muted); }
+.trace.gap { color: var(--warn); }
+.tg { width: 34px; height: 34px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: 4px; cursor: pointer; font-size: 15px; transition: transform .15s; }
+.tg[aria-expanded="true"] { transform: rotate(180deg); }
+.detail { border-top: 1px solid var(--line); padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px 28px; background: var(--surface-2); border-radius: 0 0 6px 6px; }
+.detail[hidden] { display: none; }
+.detail h3 { margin: 0 0 8px; font: 500 11px var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.detail dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13.5px; }
+.detail dt { color: var(--muted); } .detail dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.pats { display: flex; flex-direction: column; gap: 8px; }
+.pat { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 13.5px; }
+.pat code { font: 500 13px var(--f-mono); }
+.fl { font: 500 12px var(--f-mono); padding: 3px 9px; border-radius: 3px; border: 1px solid var(--ok); color: var(--ok); text-decoration: none; }
+.fl:hover { background: var(--ok); color: var(--bg); }
+.fl.miss { border: 1px dashed var(--warn); color: var(--warn); }
+.hist { display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+.hist div { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.hist .d { font: 400 12.5px var(--f-mono); color: var(--muted); }
+
+section.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; }
+section.panel h2 { margin: 0 0 4px; font: 700 22px var(--f-display); text-transform: uppercase; letter-spacing: .03em; }
+section.panel > p { margin: 0 0 14px; color: var(--muted); font-size: 13.5px; }
+.pgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.pgrid h3 { margin: 0 0 8px; font: 500 11px var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.pgrid .pat { margin-bottom: 7px; }
+.note { font-size: 13px; color: var(--muted); }
+footer { border-top: 1px solid var(--line); padding-top: 16px; font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+footer b { color: var(--fg); font-weight: 500; }
+
+@media (max-width: 920px) {
+  .colhead { display: none; }
+  .row-main { grid-template-columns: 1fr 34px; gap: 10px 12px; }
+  .row-main .c-id { grid-column: 1; }
+  .row-main .c-tg { grid-column: 2; grid-row: 1; }
+  .row-main .c-info, .row-main .c-dates, .row-main .c-state, .row-main .c-docs { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) { .tg { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Silver Industrial · SGC · Registro A.09</div>
+      <h1>Lista maestra de <span>instrumentos</span></h1>
+    </div>
+    <div class="meta">
+      <div>Última calibración cargada<b id="m-upd">08/10/2026</b></div>
+      <div>Hoy<b id="m-today">—</b></div>
+      <div>Tolerancia<b>± 30 días</b></div>
+    </div>
+  </header>
+
+  <div class="summary" id="summary"></div>
+  <div class="alert" id="alert" hidden></div>
+
+  <div class="bar">
+    <span class="lbl">Tipo</span>
+    <div class="chips" id="f-tipo"></div>
+    <span class="lbl">Estado</span>
+    <div class="chips" id="f-estado"></div>
+  </div>
+
+  <div>
+    <div class="colhead" aria-hidden="true">
+      <div>Instrumento</div><div>Calibración</div><div>Última · Próxima</div><div>Estado</div><div>Trazabilidad</div><div></div>
+    </div>
+    <div class="list" id="list" style="margin-top:8px"></div>
+  </div>
+
+  <section class="panel">
+    <h2>Patrones de referencia</h2>
+    <p>Certificados de las pesas y los patrones de longitud que dan validez a las calibraciones de arriba. Cada enlace abre el PDF en Drive.</p>
+    <div class="pgrid" id="patrones"></div>
+  </section>
+
+  <p class="note">Solo figuran los instrumentos vigentes del programa de calibración. Los instrumentos sin calibrar o dados de baja siguen en la hoja "Todos los instrumentos" del A.09.</p>
+
+  <footer>
+    <span>Desarrollado por <b>Mgter. Diego Ortiz — Líder de Mejora Continua | Consultor ISO</b></span>
+    <span>+54 9 11 4170-6692</span>
+  </footer>
+</div>
+
+<script>
+const DRIVE = id => 'https://drive.google.com/file/d/' + id + '/view';
+
+// Datos del A.09 (hoja 2025). Cada archivo es el ID del PDF en Drive.
+const WEIGHT_A = { n: 'A-00898', f: ['1hEslH_xZ9F68uy8DeTyraO3n1zzaZT1x'] };
+const DATA = [
+  { cod:'B-006', tipo:'Balanza', inst:'Balanza', serie:'Nº 523 · BB20761', marca:'DOLZ', origen:'ARG.', rango:'20 – 1000 gr', apre:'1 gr', emp:'NanoCorp', frec:'Anual', ult:'2025-09-17', prox:'2026-09-17', crit:'Sin observaciones', valor:'—',
+    cert:{ n:'170925-07', f:['1c0ezUjFPwRxWf-0ynrcNG7FM6EXQykDO'] },
+    pat:[ {n:'041023-01', f:['1BdKBpleSAsvbYeB71LvVI0Mb75ppH2hh']}, {n:'7ZW6D919', f:['1xmsds_3sW7CMqy6cdi9azK_e1dsJ7LTs','1OpisJrhQf0eHL1EGnjYwCyPbN-SgdZQ3','1Y2iO5G0wJ46QYuDLzZNylbxMU4Paly72','1xwNJ42snP18MiaC_FR1RwKB-yG8KTuDB']} ],
+    hist:[ {d:'2024-10-09', n:'E-2410026', f:'1r_sD0u2_TJB_WA_al3ofSjDa28-adE5_', e:'Net Calibraciones'} ] },
+  { cod:'B-008', tipo:'Balanza', inst:'Balanza', serie:'BS-30 · 1055', marca:'DYAR', origen:'ARG.', rango:'0,1 – 30 kg', apre:'5 gr', emp:'NanoCorp', frec:'Anual', ult:'2025-09-17', prox:'2026-09-17', crit:'Sin observaciones', valor:'—',
+    cert:{ n:'170925-02', f:['1SZQESNLEw-w2LQU5k2MrIvIQ9k3xGJeC'] },
+    pat:[ {n:'041023-02', f:[]}, {n:'7ZW6D920', f:[]} ],
+    hist:[ {d:'2024-10-09', n:'E-2410020', f:'19k5lacx96bl_92vxuwGx1zMezqGrFtkg', e:'Net Calibraciones'} ] },
+  { cod:'B-009', tipo:'Balanza', inst:'Balanza', serie:'BS-30A · 1055', marca:'DYAR', origen:'ARG.', rango:'0,1 – 30 kg', apre:'5 gr', emp:'NanoCorp', frec:'Anual', ult:'2025-09-17', prox:'2026-09-17', crit:'Sin observaciones', valor:'—',
+    cert:{ n:'170925-01', f:['1nGpTph_w7vZsPwpPI7PODDkFmmMbWRwT'] },
+    pat:[ {n:'041023-03', f:[]}, {n:'7ZW6D921', f:[]} ],
+    hist:[ {d:'2024-10-09', n:'E-2410024', f:'1b5HJe9tsPO07OlCCZBqeyZsrxXy8xuve', e:'Net Calibraciones'} ] },
+  { cod:'B-012', tipo:'Balanza', inst:'Balanza', serie:'ES-1100', marca:'PRECISION', origen:'ARG.', rango:'5 – 1100 gr', apre:'0,1 gr', emp:'NanoCorp', frec:'Anual', ult:'2025-09-17', prox:'2026-09-17', crit:'Sin observaciones', valor:'—',
+    cert:{ n:'170925-03', f:['1rqyTEzYBVc8fHFamZyB-L9ANqu8HR9bJ'] },
+    pat:[ {n:'041023-04', f:[]}, {n:'7ZW6D922', f:[]} ],
+    hist:[ {d:'2024-10-09', n:'E-2410021', f:'1lCSGCYZMvVyKswJ8Na8GRm6pPW5TOsUZ', e:'Net Calibraciones'} ] },
+  { cod:'B-013', tipo:'Balanza', inst:'Balanza', serie:'NHB-300', marca:'PRECISION', origen:'CHINA', rango:'1 – 300 gr', apre:'0,005 gr', emp:'NanoCorp', frec:'Anual', ult:'2025-09-17', prox:'2026-09-17', crit:'Sin observaciones', valor:'—',
+    cert:{ n:'170925-05', f:['1N5343shhMe2uMoWc1B8JiQ2c0javGnHb'] },
+    pat:[ {n:'041023-05', f:[]}, {n:'7ZW6D923', f:[]} ],
+    hist:[ {d:'2024-10-09', n:'E-2410023', f:'1Ox9h_JMyv9iMaM_7DmxeYtMf4-Z2f40D', e:'Net Calibraciones'} ] },
+  { cod:'B-014', tipo:'Balanza', inst:'Balanza', serie:'3026', marca:'METTLER TOLEDO', origen:'USA', rango:'0,04 – 6 kg', apre:'2 gr', emp:'NanoCorp', frec:'Anual', ult:'2025-09-17', prox:'2026-09-17', crit:'Sin observaciones', valor:'—',
+    cert:{ n:'170925-06', f:['1QpCecRQ-icO4oWzFSvumf7Krr6kAO-va'] },
+    pat:[ {n:'041023-06', f:[]}, {n:'7ZW6D924', f:[]} ],
+    hist:[ {d:'2024-10-09', n:'E-2410025', f:'1MRXalzuujEAdNjSAwmDebk4Dw7nkflcA', e:'Net Calibraciones'} ] },
+  { cod:'B-016', tipo:'Balanza', inst:'Balanza', serie:'BE-80.1266', marca:'PRECISION', origen:'ARG.', rango:'0,04 – 10 kg', apre:'2 gr', emp:'NanoCorp', frec:'Anual', ult:'2025-09-17', prox:'2026-09-17', crit:'Sin observaciones', valor:'—',
+    cert:{ n:'170925-04', f:['10qYAZKra4l8YO4-G2VoyPFvrJ5QdpvCG'] },
+    pat:[ {n:'041023-07', f:[]}, {n:'7ZW6D925', f:[]} ],
+    hist:[ {d:'2024-10-09', n:'E-2410022', f:'1VuhphBORXbFSWaFM4ler8v5tk8-8b4f2', e:'Net Calibraciones'} ] },
+  { cod:'C-002', tipo:'Calibre', inst:'Calibre digital', serie:'100176-B', marca:'DIGIMESS', origen:'JAPÓN', rango:'0 – 200 mm', apre:'0,01 mm', emp:'Net Calibraciones', frec:'Anual', ult:'2025-09-08', prox:'2026-09-08', crit:'Desvío STD respecto a valores nominales de exteriores < 0,02 mm', valor:'0,011',
+    cert:{ n:'2508174', f:['1gWENdF25mNG6xAJFazzpf6673ccDdrWo'] },
+    pat:[ WEIGHT_A ],
+    hist:[ {d:'2024-04-19', n:'190424-01', f:'1wopc9HZNqSpzJitJiKM0RAQXc4shh-1a', e:'Nanocorp'} ] },
+  { cod:'C-010', tipo:'Calibre', inst:'Calibre digital', serie:'1108-150', marca:'INSIZE', origen:'CHINA', rango:'0 – 150 mm', apre:'0,01 mm', emp:'Net Calibraciones', frec:'Anual', ult:'2025-09-08', prox:'2026-09-08', crit:'Error promedio paralelo en boca ≤ 0,02 mm', valor:'0 mm',
+    cert:{ n:'2508173', f:['14ilWyS6_RNGgagnP_-FETeqPNHT0tZfD'] },
+    pat:[ WEIGHT_A ],
+    hist:[ {d:'2024-04-26', n:'260424-01', f:'1ZN_RmeQeuOr3MeUVYeOv6HTtdNkCNI1c', e:'Nanocorp'} ] },
+  { cod:'C-011', tipo:'Calibre', inst:'Calibre digital', serie:'1520-150', marca:'INSIZE', origen:'CHINA', rango:'0 – 150 mm', apre:'0,01 mm', emp:'Net Calibraciones', frec:'Cada 2 años', ult:'2024-10-09', prox:'2026-10-09', crit:'—', valor:'0,01',
+    nota:'La hoja lo marca "En calibración". La hoja "Todos" indica 24/10/2024 → 24/10/2026; la hoja 2025 indica 09/10/2024 → 09/10/2026.',
+    cert:{ n:'2410195', f:['1s-ADpp_ofiL7KJJsSrn5HXTU-Fyeu3nT'] },
+    pat:[ WEIGHT_A ], hist:[] },
+  { cod:'M-001', tipo:'Micrómetro', inst:'Micrómetro', serie:'—', marca:'GENÉRICO', origen:'ARG.', rango:'0 – 25 mm', apre:'0,01 mm', emp:'Net Calibraciones', frec:'Cada 2 años', ult:'2025-09-08', prox:'2027-09-08', crit:'Error promedio menor a 10 micrones', valor:'3,7 micrones',
+    cert:{ n:'2508176', f:['1OtxMjIawOSWSRKZY6JnsgKCJPJyEoQlA'] },
+    pat:[ WEIGHT_A ],
+    hist:[ {d:'2022-11-14', n:'2004/2022', f:'1SFz-mH7ZjbQnVrGCftL7x9G3XHVz6d6m', e:'Mitutoyo'} ] }
+];
+
+const PATRONES = [
+  { t:'Pesas patrón (balanzas)', items:[
+    {n:'041023-01 · NanoCorp JP200', f:['1BdKBpleSAsvbYeB71LvVI0Mb75ppH2hh']},
+    {n:'7ZW6D919', f:['1xmsds_3sW7CMqy6cdi9azK_e1dsJ7LTs','1OpisJrhQf0eHL1EGnjYwCyPbN-SgdZQ3','1Y2iO5G0wJ46QYuDLzZNylbxMU4Paly72','1xwNJ42snP18MiaC_FR1RwKB-yG8KTuDB']},
+    {n:'10LR0Q20', f:['1v3yq8PX9Ftk_RgDr0y6_txmJbOhvPToQ','1GVsdEnHMAKVoxBE_ih9WnMPgL6EP41Vm']},
+    {n:'Pesas 6000', f:['1JP7K8FkOBhL36UKIIL7mm6Zi2uFcMbfm']},
+    {n:'37304-P-0924', f:['1nHPstlUMGBw9ZkCbtsZ8SM2i5iIWYIh7']},
+    {n:'37250-P-0824', f:['1OIfHzrchsi3cJzrg8j_rSCBi1rQHxRjp']},
+    {n:'37251-P-0824', f:['1G_63XxrDCaKI5rGL-Z6NNVZKVivo-PVe']},
+    {n:'37249-P-0824', f:['1xQMoNO-qOyEkUDCbk_NCDgd2pOEyV7mS']},
+    {n:'29959-P-0321', f:['1EPAkl_EOloKfoxbxh1yxNcxoXDZUYrad']},
+    {n:'DZ 090421', f:['10qATCSSGXv_XohIst6dAwcRQ6hsovYlY']}
+  ]},
+  { t:'Patrones de longitud (calibres y micrómetro)', items:[
+    {n:'A-00898 · 2023 NET-GAL-01', f:['1hEslH_xZ9F68uy8DeTyraO3n1zzaZT1x']},
+    {n:'S-90062', f:['1fmNVAgWOxv7uaDL01Dxha3JcGXT2wXEF','1xUDLPcJ897a0K7zAKmCib-BdfFIa7Gm8','14wurDB5p8funyfNajLsNazRpE2uXIJcc','1SgKl99c7G2mVzWzSLHj2TzRMXTDMgk1i','1OSpWkEzgLo5PlbYOCbiAb8qoULGJUJW_']},
+    {n:'S-86163', f:['1dTqnbMaSJrpMKvZd9g5aBxRd519XmAjt','15-E7Mq3WU_4182saEN87qvKC47n0zkZy','1JFtzZSekoLgbZCf1sihIVvtPDFkAJr8U','1AagZ6QqndCNCb-lRIVtB5f6QMM0mTEBp']}
+  ]}
+];
+
+// Calibraciones 2026 (carpeta "Certificados Calibracion 2026"): todas con fecha 08/10/2026, laboratorio NanoCorp.
+// Patrones declarados en cada certificado, con su validez según el propio certificado.
+const P_PESAS = { n:'7ZW6D919', d:'Juego de pesas 6000', v:'2027-07-16', f:['1AvF2sEEalLHp0nnxHywhHRAOP_xV-vbu'] };
+const P_JP200 = { n:'041023-01', d:'Juego de pesas JP200', v:'2028-10-04', f:['1V4HlRLyd-hKMBGuK3h7t1kCHz5Vnj1Vz'] };
+const P_BLOQ  = { n:'S-90062', d:'Bloques patrón BP-002', v:'2027-02-10', f:['11Zp0fJI1t3XfVhh37p5Ki1W1e2Ghxm8P'] };
+const P_TERMO = { n:'131152', d:'Termohigrómetro TEMP-003', v:'2027-12-15', f:['1llnOnFCKKc9adwiq-vdYTKURc6EXX0ll'] };
+const R2026 = {
+  'B-006': { n:'081026-08', f:'1hMIVcfNHgcbU2d7OuWEeZuaBpfhFz6Iz' },
+  'B-008': { n:'081026-01', f:'1fUMdGbAl2eK7vY7BPfIw3U7HazGtWWrq' },
+  'B-009': { n:'081026-03', f:'1A5Um0T7LkoW14G6m6L9Y8cyzMFZOi5yc' },
+  'B-012': { n:'081026-02', f:'1enBv92uKGZ6BJi9m0mlsGB9Q7_htgb-7' },
+  'B-013': { n:'081026-04', f:'17At4gEgPAU3visPdkEZS-g5gXO03-bJE' },
+  'B-014': { n:'081026-07', f:'1rfPcwdN_PIMm5l-IwMiNwQx-uaJjJ3ws' },
+  'C-002': { n:'081026-06', f:'1f3fECNBMd8yp3Z5871IaOHwzumahnIzX' },
+  'C-010': { n:'081026-05', f:'1aUzvr0XGXffdQOGb1qnNqKlJwFwgSI3f' }
+};
+DATA.forEach(r => {
+  const u = R2026[r.cod]; if (!u) return;
+  r.hist.unshift({ d: r.ult, n: r.cert.n, f: r.cert.f[0], e: r.emp });
+  r.cert = { n: u.n, f: [u.f] };
+  r.ult = '2026-10-08'; r.prox = '2027-10-08'; r.emp = 'NanoCorp';
+  r.pat = r.tipo === 'Balanza' ? [P_PESAS, P_JP200, P_TERMO] : [P_BLOQ, P_TERMO];
+  if (r.tipo === 'Calibre') r.nota = 'Criterio y valor vienen de la hoja anterior; falta contrastarlos con el certificado 2026.';
+});
+
+// B-016 está dado de baja. C-011 se recalibra la semana del 26/10/2026.
+DATA.find(r => r.cod === 'B-016').baja = true;
+const c11 = DATA.find(r => r.cod === 'C-011');
+c11.prog = 'Recalibración programada la semana del 26/10/2026';
+c11.nota = 'Pendiente de recalibración. La hoja anterior mostraba dos fechas (09/10 y 24/10/2024); usé 09/10/2024.';
+
+const TOL = 30;
+const today = new Date(); today.setHours(0, 0, 0, 0);
+const toDate = iso => new Date(iso + 'T00:00:00');
+const fmt = iso => iso.split('-').reverse().join('/');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function evalState(r) {
+  if (r.baja) return { dias: null, cls: 'baja', label: 'De baja', sub: 'Fuera del programa de calibración', pct: 0 };
+  const dias = Math.round((toDate(r.prox) - today) / 864e5);
+  let cls, label, sub;
+  if (dias > TOL) { cls = 'ok'; label = 'Vigente'; sub = 'Vence en ' + dias + ' días'; }
+  else if (dias >= 0) { cls = 'warn'; label = 'Vence pronto'; sub = dias === 0 ? 'Vence hoy' : 'Vence en ' + dias + ' días'; }
+  else if (dias >= -TOL) { cls = 'warn'; label = 'Vencido · en tolerancia'; sub = 'Vencido hace ' + (-dias) + ' días (± ' + TOL + ' d)'; }
+  else { cls = 'bad'; label = 'Vencido'; sub = 'Vencido hace ' + (-dias) + ' días'; }
+  const total = (toDate(r.prox) - toDate(r.ult)) / 864e5;
+  const used = (today - toDate(r.ult)) / 864e5;
+  const pct = Math.max(0, Math.min(100, Math.round(used / total * 100)));
+  return { dias, cls, label, sub: sub + (r.prog ? ' · ' + r.prog : ''), pct };
+}
+DATA.forEach(r => { r.s = evalState(r); });
+
+const links = (files, short) => files.map((id, i) =>
+  '<a class="fl" href="' + DRIVE(id) + '" target="_blank" rel="noopener">' + (files.length > 1 ? 'PDF ' + (i + 1) : (short || 'Ver PDF')) + '</a>').join('');
+
+function patHtml(list) {
+  return list.map(p => {
+    let val = '';
+    if (p.v) { const ok = toDate(p.v) >= today; val = '<span class="trace' + (ok ? '' : ' gap') + '">' + (p.d ? esc(p.d) + ' · ' : '') + (ok ? 'vigente hasta ' : 'vencido el ') + fmt(p.v) + '</span>'; }
+    return '<div class="pat"><code>' + esc(p.n) + '</code>' +
+      (p.f.length ? links(p.f) : '<span class="fl miss">sin archivo en Drive</span>') + val + '</div>';
+  }).join('');
+}
+
+let fTipo = 'Todos', fEstado = 'Todos';
+
+function render() {
+  const rows = DATA.filter(r => (fTipo === 'Todos' || r.tipo === fTipo) &&
+    (fEstado === 'Todos' || (fEstado === 'Vigentes' && r.s.cls === 'ok') || (fEstado === 'Por vencer' && r.s.cls === 'warn') || (fEstado === 'Vencidos' && r.s.cls === 'bad') || (fEstado === 'De baja' && r.s.cls === 'baja')));
+  const open = new Set([...document.querySelectorAll('.row .tg[aria-expanded="true"]')].map(b => b.dataset.cod));
+  document.getElementById('list').innerHTML = rows.length ? rows.map(r => {
+    const ok = r.pat.filter(p => p.f.length).length;
+    const gap = ok < r.pat.length;
+    const isOpen = open.has(r.cod);
+    return '<article class="row ' + r.s.cls + '">' +
+      '<div class="row-main">' +
+        '<div class="c-id cod">' + esc(r.cod) + '<small>' + esc(r.inst) + ' · ' + esc(r.marca) + '<br>' + esc(r.rango) + ' · apreciación ' + esc(r.apre) + '</small></div>' +
+        '<div class="c-info kv"><b>' + esc(r.emp) + '</b><br>' + esc(r.frec) + ' · tol. ± 30 d</div>' +
+        '<div class="c-dates"><div class="dates"><span>Última</span>' + fmt(r.ult) + '<br><span>Próxima</span>' + (r.baja ? '—' : fmt(r.prox)) + '</div>' + (r.baja ? '' : '<div class="life" title="' + r.s.pct + '% del ciclo transcurrido"><i style="width:' + r.s.pct + '%"></i></div>') + '</div>' +
+        '<div class="c-state"><span class="pill ' + r.s.cls + '">' + esc(r.s.label) + '</span><div class="sub">' + esc(r.s.sub) + '</div></div>' +
+        '<div class="c-docs docs"><a class="btn" href="' + DRIVE(r.cert.f[0]) + '" target="_blank" rel="noopener">Certificado ' + esc(r.cert.n) + '</a>' + (r.baja ? '<span class="trace">Último certificado, 2025</span>' : '<span class="trace' + (gap ? ' gap' : '') + '">Patrones ' + ok + '/' + r.pat.length + ' con archivo</span>') + '</div>' +
+        '<div class="c-tg"><button class="tg" type="button" data-cod="' + r.cod + '" aria-expanded="' + isOpen + '" aria-label="Detalle de ' + r.cod + '">▾</button></div>' +
+      '</div>' +
+      '<div class="detail"' + (isOpen ? '' : ' hidden') + '>' +
+        '<div><h3>Ficha del instrumento</h3><dl>' +
+          '<dt>Código</dt><dd>' + esc(r.serie) + '</dd><dt>Marca</dt><dd>' + esc(r.marca) + ' · ' + esc(r.origen) + '</dd><dt>Rango</dt><dd>' + esc(r.rango) + '</dd>' +
+          '<dt>Criterio OK</dt><dd>' + esc(r.crit) + '</dd><dt>Valor</dt><dd>' + esc(r.valor) + '</dd>' + (r.nota ? '<dt>Nota</dt><dd>' + esc(r.nota) + '</dd>' : '') +
+        '</dl></div>' +
+        '<div><h3>Certificado y patrones</h3><div class="pats"><div class="pat"><code>' + esc(r.cert.n) + '</code>' + links(r.cert.f, 'Certificado') + '<span class="trace">' + esc(r.emp) + '</span></div>' + patHtml(r.pat) + '</div></div>' +
+        '<div><h3>Historial</h3><div class="hist">' + (r.hist.length ? r.hist.map(h => '<div><span class="d">' + fmt(h.d) + '</span><code>' + esc(h.n) + '</code><a class="fl" href="' + DRIVE(h.f) + '" target="_blank" rel="noopener">Ver PDF</a><span class="trace">' + esc(h.e) + '</span></div>').join('') : '<span class="note">Sin certificados anteriores cargados.</span>') + '</div></div>' +
+      '</div></article>';
+  }).join('') : '<p class="note">Ningún instrumento coincide con el filtro.</p>';
+}
+
+function chips(id, opts, get, set) {
+  const el = document.getElementById(id);
+  el.innerHTML = opts.map(o => '<button type="button" class="chip" aria-pressed="' + (get() === o) + '">' + o + '</button>').join('');
+  el.onclick = e => { const b = e.target.closest('.chip'); if (!b) return; set(b.textContent); chips(id, opts, get, set); render(); };
+}
+
+const cnt = c => DATA.filter(r => r.s.cls === c).length;
+document.getElementById('summary').innerHTML =
+  '<div class="tile ok"><div class="n">' + cnt('ok') + '</div><div class="l"><b>Vigentes</b>calibración en fecha</div></div>' +
+  '<div class="tile warn"><div class="n">' + cnt('warn') + '</div><div class="l"><b>Por vencer</b>vence en 30 días o está en tolerancia</div></div>' +
+  '<div class="tile bad"><div class="n">' + cnt('bad') + '</div><div class="l"><b>Vencidos</b>fuera de fecha y de tolerancia</div></div>' +
+  '<div class="tile"><div class="n">' + DATA.filter(r => !r.baja).length + '</div><div class="l"><b>En programa</b>' + cnt('baja') + ' dado de baja</div></div>';
+if (cnt('bad') > 0) {
+  const al = document.getElementById('alert'); al.hidden = false;
+  const codes = DATA.filter(r => r.s.cls === 'bad').map(r => r.cod).join(', ');
+  al.innerHTML = '<b>' + cnt('bad') + (cnt('bad') === 1 ? ' instrumento vencido: ' : ' instrumentos vencidos: ') + esc(codes) + '.</b> No hay certificado nuevo cargado para ' + (cnt('bad') === 1 ? 'él' : 'ellos') + ' en la carpeta Certificados Calibracion 2026.';
+}
+document.getElementById('m-today').textContent = today.toLocaleDateString('es-AR');
+document.getElementById('list').addEventListener('click', e => {
+  const b = e.target.closest('.tg'); if (!b) return;
+  const d = b.closest('.row').querySelector('.detail');
+  const o = b.getAttribute('aria-expanded') === 'true';
+  b.setAttribute('aria-expanded', String(!o)); d.hidden = o;
+});
+PATRONES[0].items = [P_PESAS, P_JP200].concat(PATRONES[0].items.filter(p => !/^(041023-01|7ZW6D919)/.test(p.n)));
+PATRONES[1].items = [P_BLOQ, PATRONES[1].items[0]].concat(PATRONES[1].items.slice(1).map(p => p.n === 'S-90062' ? { n: 'S-90062 · certificados anteriores', f: p.f } : p));
+PATRONES.splice(1, 0, { t: 'Equipo auxiliar (condiciones ambientales)', items: [P_TERMO] });
+document.getElementById('patrones').innerHTML = PATRONES.map(g =>
+  '<div><h3>' + g.t + '</h3>' + patHtml(g.items.map(p => Object.assign({}, p, { n: p.n }))) + '</div>').join('');
+
+chips('f-tipo', ['Todos', 'Balanza', 'Calibre', 'Micrómetro'], () => fTipo, v => fTipo = v);
+chips('f-estado', ['Todos', 'Vigentes', 'Por vencer', 'Vencidos', 'De baja'], () => fEstado, v => fEstado = v);
+render();
+</script>
+
+</body>
+</html>
