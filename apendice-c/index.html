@@ -229,11 +229,13 @@ function cls(r,v,esAcc){
   if(r.soloAcc && !esAcc) return '';
   return ok(r,v)?'ok':'off';
 }
+const PERIODO={'Encuesta hacia Silver':12,'Encuesta respecto de la competencia de Silver':12,'Evaluación de Proveedores':12,'Cumplimiento del programa de capacitación':12,'Quejas':6,'% Devoluciones':3,'Fallas Internas':3};
 function planilla(){
   let h='<thead><tr><th rowspan="2">Objetivo</th><th rowspan="2">Indicador</th><th rowspan="2">Meta<br>Año 2026</th><th colspan="12">REAL CALCULADO</th><th rowspan="2">Acumulado</th></tr><tr>'+MESES.map(m=>`<th>${m}</th>`).join('')+'</tr></thead><tbody>';
   AP.forEach(g=>g.rows.forEach((r,i)=>{
     h+='<tr>'+(i===0?`<td class="obj" rowspan="${g.rows.length}">${g.obj}</td>`:'')+`<td class="ind">${r.ind}</td><td class="meta">${r.meta}</td>`;
-    for(let m=0;m<12;m++){ const v=r.c[m]; h+=`<td class="v ${cls(r,v,false)}">${v==null?'':fmt(r,v)}</td>`; }
+    const P=PERIODO[r.ind]||1; // meses que abarca cada medición: 12 anual, 6 semestral, 3 trimestral (celdas combinadas)
+    for(let m=0;m<12;m+=P){ const v=r.c[m]; h+=`<td class="v ${cls(r,v,false)}"${P>1?` colspan="${P}"`:''}>${v==null?'':fmt(r,v)}</td>`; }
     h+=`<td class="v ${cls(r,r.acc,true)}">${fmt(r,r.acc)}</td></tr>`;
   }));
   document.getElementById('tabla').innerHTML=h+'</tbody>';
