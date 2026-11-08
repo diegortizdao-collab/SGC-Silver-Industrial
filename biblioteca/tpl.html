@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Biblioteca documental · SGC Silver Industrial</title>
+<style>
+:root{--ink:#14213d;--mut:#5a6480;--line:#dde2ee;--bg:#f3f5fa;--ind:#1d3a8a;--ok:#1f7a4d;--okbg:#e2f4ea;--wr:#8a5a00;--wrbg:#fff2d2;--gr:#6b7280;--grbg:#eceef3;--nw:#5b21b6;--nwbg:#ede4fb}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.4}
+header{background:var(--ind);color:#fff;padding:16px 20px}header h1{margin:0;font-size:19px}header p{margin:3px 0 0;font-size:13px;opacity:.85}
+header a{color:#fff;font-size:13px;opacity:.9}
+.tools{position:sticky;top:0;z-index:4;background:#fff;border-bottom:1px solid var(--line);padding:10px 20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tools input{flex:1;min-width:220px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;font:inherit}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:99px;padding:5px 11px;font-size:12.5px;cursor:pointer}
+.chip.on{background:var(--ind);color:#fff;border-color:var(--ind)}
+.layout{display:flex;gap:14px;padding:14px 20px;align-items:flex-start}
+.list{flex:1;min-width:0;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{background:#eef1f8;text-align:left;font-size:12px;padding:8px 10px;position:sticky;top:0}
+td{padding:7px 10px;border-top:1px solid var(--line);vertical-align:top}
+tr.r{cursor:pointer}tr.r:hover{background:#f5f7fd}tr.sel{background:#e8eefc!important}
+.cod{font-weight:700;white-space:nowrap}.mut{color:var(--mut);font-size:12px}
+.tag{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11.5px;font-weight:600}
+.t-v{background:var(--okbg);color:var(--ok)}.t-o{background:var(--grbg);color:var(--gr)}.t-d{background:var(--wrbg);color:var(--wr)}.t-n{background:var(--nwbg);color:var(--nw)}
+.app{font-size:11.5px;background:#e0ebff;color:#1d4ed8;border-radius:6px;padding:1px 6px;margin-left:6px;font-weight:600}
+.pn{width:440px;flex:none;position:sticky;top:64px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;max-height:calc(100vh - 80px);overflow:auto}
+.pn h2{margin:0 0 2px;font-size:16px}.pn dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:13px;margin:10px 0}.pn dt{color:var(--mut)}.pn dd{margin:0}
+.btn{display:inline-block;margin:3px 6px 3px 0;padding:7px 11px;border-radius:8px;background:var(--ind);color:#fff;text-decoration:none;font-size:13px;font-weight:600}
+.btn.g{background:#fff;color:var(--ind);border:1px solid var(--ind)}
+.note{background:var(--wrbg);color:#5b3b00;border-radius:8px;padding:8px 10px;font-size:12.5px;margin:8px 0}
+iframe{width:100%;height:420px;border:1px solid var(--line);border-radius:8px;margin-top:8px}
+.hint{font-size:12px;color:var(--mut);margin-top:4px}
+.empty{padding:30px;text-align:center;color:var(--mut)}
+footer{padding:6px 20px 26px;font-size:12px;color:var(--mut)}
+@media(max-width:900px){.layout{flex-direction:column}.pn{width:100%;position:static;max-height:none}.hide-m{display:none}}
+</style></head><body>
+<header><h1>Biblioteca documental del SGC</h1>
+<p>Silver Industrial · índice del Manual, procedimientos, instructivos, registros y apéndices · <a href="../">← Volver al portal</a></p></header>
+<div class="tools">
+<input id="q" type="search" placeholder="Buscar por código, nombre o responsable…" autocomplete="off">
+<div class="chips" id="fam"></div>
+<div class="chips" id="est"></div>
+</div>
+<div class="layout">
+<div class="list"><table><thead><tr><th>Código</th><th>Documento</th><th>Rev.</th><th class="hide-m">Fecha</th><th class="hide-m">Responsable</th><th>Estado</th></tr></thead><tbody id="tb"></tbody></table><div id="empty" class="empty" style="display:none">Sin resultados.</div></div>
+<aside class="pn" id="pn"><div class="hint">Elegí un documento de la lista para ver su ficha, abrirlo o ver la vista previa.</div></aside>
+</div>
+<footer><div id="cnt"></div>
+Fuentes: A.05 «Listado de registros» y Apéndice A (29/10/25), con las revisiones decididas hasta el 08/11/2026 marcadas en cada ficha. Los archivos viven en Drive: la vista previa y la apertura piden iniciar sesión con una cuenta de Google que tenga acceso. Si no hay enlace directo, el botón «Buscar en Drive» arma la búsqueda por código.
+<br>Desarrollado por Mgter. Diego Ortiz — Líder de Mejora Continua | Consultor ISO</footer>
+<script>
+/*DATA*/
+(function(){
+var ESTL={v:'Vigente',o:'Obsoleto',d:'Disponible',n:'En alta'},st={fam:'Todos',est:'v',q:'',sel:null};
+function el(i){return document.getElementById(i)}
+function chips(id,items,key){el(id).innerHTML=items.map(function(i){return '<button class="chip'+(st[key]===i[0]?' on':'')+'" data-k="'+key+'" data-v="'+i[0]+'">'+i[1]+'</button>'}).join('')}
+function norm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function list(){
+  var q=norm(st.q);
+  return REC.filter(function(r){
+    if(st.fam!=='Todos'&&r.fam!==st.fam)return false;
+    if(st.est!=='t'&&r.est!==st.est)return false;
+    if(q&&norm(r.cod+' '+r.nom+' '+r.resp).indexOf(q)<0)return false;
+    return true;
+  });
+}
+function render(){
+  chips('fam',[['Todos','Todos']].concat(FAMS.map(function(f){return [f,LBL[f]]})),'fam');
+  chips('est',[['v','Vigentes'],['o','Obsoletos'],['d','Disponibles'],['n','En alta'],['t','Todos']],'est');
+  var L=list();
+  el('tb').innerHTML=L.map(function(r){var i=REC.indexOf(r);
+    return '<tr class="r'+(st.sel===i?' sel':'')+'" data-i="'+i+'"><td class="cod">'+esc(r.cod)+'</td><td>'+esc(r.nom)+(r.app?'<span class="app">app</span>':'')+(r.nota?' <span title="'+esc(r.nota)+'">⚑</span>':'')+'</td><td>'+esc(r.rv)+'</td><td class="hide-m">'+esc(r.fe)+'</td><td class="hide-m mut">'+esc(r.resp)+'</td><td><span class="tag t-'+r.est+'">'+ESTL[r.est]+'</span></td></tr>'}).join('');
+  el('empty').style.display=L.length?'none':'block';
+  el('cnt').textContent=L.length+' de '+REC.length+' documentos. ';
+}
+function panel(i){
+  var r=REC[i];st.sel=i;
+  var h='<h2>'+esc(r.cod)+' · '+esc(r.nom)+'</h2><span class="tag t-'+r.est+'">'+ESTL[r.est]+'</span>';
+  h+='<dl><dt>Familia</dt><dd>'+esc(LBL[r.fam])+'</dd><dt>Revisión</dt><dd>'+esc(r.rv||'—')+'</dd><dt>Fecha</dt><dd>'+esc(r.fe||'—')+'</dd><dt>Responsable</dt><dd>'+esc(r.resp||'—')+'</dd><dt>Soporte</dt><dd>'+esc(r.sop||'—')+'</dd></dl>';
+  if(r.nota)h+='<div class="note">'+esc(r.nota)+'</div>';
+  if(r.est==='o')h+='<div class="note">Marcado como obsoleto / fuera de uso en el A.05: no se usa, se conserva solo como historial.</div>';
+  if(r.est==='d')h+='<div class="note">Código disponible: no hay documento asignado.</div>';
+  if(r.app)h+='<a class="btn" target="_blank" rel="noopener" href="'+r.app+'">Abrir la aplicación</a>';
+  if(r.open)h+='<a class="btn'+(r.app?' g':'')+'" target="_blank" rel="noopener" href="'+r.open+'">Abrir en Drive</a>';
+  if(r.est!=='d'){h+='<a class="btn g" target="_blank" rel="noopener" href="'+r.q+'">Buscar en Drive</a><a class="btn g" target="_blank" rel="noopener" href="'+r.fold+'">Carpeta</a>';}
+  if(r.prev){h+='<iframe loading="lazy" src="'+r.prev+'"></iframe><div class="hint">Si ves un aviso de acceso, iniciá sesión en Google con la cuenta que tiene permiso.</div>';}
+  else if(r.est!=='d')h+='<div class="hint">Sin vista previa directa para este documento todavía: se abre desde el botón de búsqueda o la carpeta.</div>';
+  el('pn').innerHTML=h;render();
+}
+document.addEventListener('click',function(e){
+  var c=e.target.closest&&e.target.closest('.chip');if(c){st[c.dataset.k]=c.dataset.v;render();return}
+  var t=e.target.closest&&e.target.closest('tr.r');if(t)panel(+t.dataset.i);
+});
+el('q').addEventListener('input',function(){st.q=this.value;render()});
+render();
+})();
+</script></body></html>

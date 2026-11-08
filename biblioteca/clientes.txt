@@ -1,0 +1,89 @@
+C.01|Control de muestras de producción|15/11/2013|2|R|P|v
+C.02|Control dimensional Elster, soporte módulo Alpha 30437|28/8/2019|2|R|P|o
+C.03|Control dimensional Elster, block de terminales inferior 30174|3/7/2012|1|R|P|o
+C.04|Control dimensional Elster, block de terminales superior 30173|26/11/2013|2|R|P|o
+C.05|Control aro microfiltro Microclar|3/7/2012|1|R|P|v
+C.06|Control de moldes Elster|1/1/2013|1|D|P|o
+PR7-003-FO-003|Certificado de calidad y conformidad (Medix)||A|D|E|v
+C.07|Control tapa válvula de O2|14/11/2013|2|R|P|v
+C.08|Disponible||||| d
+C.09|Control cuerpo pasante|18/8/2016|2|R|P|v
+C.10|Seguimiento de validación Medix|28/7/2014|2|R|E|v
+C.11|Control de muestras cuerpo puente FX tapa y base|6/6/2014|3|R|P|v
+C.12|Control de muestras cuerpo módulo FX|6/6/2014|2|R|P|v
+C.13|Control dimensional Elster, tapa principal baja 30434|27/6/2014|1|R|P|o
+C.14|Norma de aptitud de lotes 30434|30/6/2014|1|D|P|o
+C.15|Norma de aptitud de lotes 30436|11/7/2014|1|D|P|o
+C.16|Dimensional buje inf 1/2 c/pestaña|29/9/2014|1|R|P|v
+C.17|Dimensional buje inf 1/4 c/pestaña|29/9/2014|1|R|P|v
+C.18|Dimensional buje sup 1/2 s/pestaña|29/9/2014|1|R|P|v
+C.19|Dimensional buje sup 1/4 s/pestaña|29/9/2014|1|R|P|v
+C.20|Control frente módulo comando|9/3/2022|2|R|P|v
+C.21|Control tapa, base y tubo monitor|27/9/2017|3|R|P|v
+C.22|Control soporte eje bisagra|4/11/2016|1|R|P|v
+C.23|Control placa Petri 90|3/1/2017|1|R|P|v
+C.24|Control cabezal Acquatron|24/11/2017|2|R|P|v
+C.25|Hoja de proceso|14/7/2017|1|D|E|v
+C.26|Hoja de proceso Portillo Iris|14/4/2023|3|D|P|v
+C.27|Control carcasa módulo comando|8/8/2017|1|D|P|v
+C.28|Hoja de proceso cuerpo giratorio Portillo Iris|13/9/2018|2|D|P|v
+C.29|Certificado de calidad Forsafe|21/9/2017|1|R|E|v
+C.30|Certificado de calidad NOV MSW|21/9/2017|1|R|E|v
+C.31|Certificado de calidad tapa principal baja 30434|27/9/2017|1|R|E|o
+C.32|Certificado de calidad base con/sin agujero conector 30436|27/9/2017|1|R|E|o
+C.33|Certificado de calidad soporte módulo Alpha 30437|27/9/2017|1|R|E|o
+C.34|Control base A1052 Alpha 3|1/11/2017|1|R|P|o
+C.35|Control dimensional refuerzo parante|8/11/2017|1|R|P|v
+C.36|Control parantes|17/11/2017|1|R|P|v
+ISOFORM 26|Control de calidad máscaras Full Face FS-1000||3|R|P|v
+ISOFORM 44|Plan de control máscara FS-1000|30/8/2015|1|R|P|o
+C.37|Control de muestras Florida|1/12/2017|1|R|P|o
+C.38|Certificado de calidad mascarita A150|11/7/2018|2|R|E|o
+C.38B|Control dimensional Elster mascarita A130C (operario)|26/2/2018|1|R|P|o
+C.39|Control brida media MVD IPS|3/7/2018|1|R|P|v
+C.40|Control tuerca media|3/7/2018|1|R|P|v
+C.41|Rosca macho hembra de media|25/9/2018|1|R|P|v
+C.42|Control asiento respaldo silla|1/11/2018|1|R|P|v
+C.43|Control tapa cuerpo Luminox|20/5/2019|1|R|P|v
+C.44|Control dimensional funda inyectada|24/4/2019|1|R|P|v
+C.45|Control tapón Luminox|11/11/2019|2|R|P|v
+C.46|Certificado calidad manchones ERHSA|3/6/2019|1|D|E|v
+C.47|Certificado de calidad válvula de cierre Vantec+|10/6/2019|1|R|P|v
+C.48|Control monoblock 40011CT|14/8/2020|5|R|P|o
+C.49|Control monoblock 31143AT|4/8/2020|3|R|P|o
+C.50|Certificado de calidad monoblock 4001CT|10/7/2019|1|R|E|o
+C.51|Certificado de calidad monoblock 4001CT|10/7/2019|1|R|E|o
+C.52|Certificado buje centralizador inferior 1/4|19/7/2019|1|R|E|v
+C.53|Certificado buje centralizador superior 1/4|19/7/2019|1|R|E|v
+C.54|Certificado buje centralizador inferior 1/2 con pestaña|19/7/2019|1|R|E|v
+C.55|Certificado buje centralizador superior 1/2|19/7/2019|1|R|E|v
+C.56|Control leva y lente|13/8/2019|1|R|P|v
+C.57|Control dimensional válvula de cierre cono Vantec+|31/8/2022|2|R|P|v
+C.58|Certificado de calidad platillo interno Elster|15/10/2019|1|R|E|o
+C.59|Instrucción de liberación de lotes Luminox|8/11/2019|1|R|P|v
+C.60|Control biela 40032AT|19/5/2020|2|R|P|o
+C.61|Control bandera 40014AT|20/4/2020|2|R|P|o
+C.62|Control eje central|20/4/2020|1|R|P|v
+C.63|Certificado de calidad biela 40032AT|7/5/2020|1|R|P|o
+C.64|Certificado de calidad bandera 40014AT|7/5/2020|1|R|P|o
+C.65|Certificado de calidad eje central 40020AT|7/5/2020|1|R|P|o
+C.66|Control brazo bandera|7/5/2020|2|R|P|o
+C.68|Certificado de calidad brazo bandera|7/5/2020|1|R|P|o
+C.69|Control platillo interno|11/9/2020|2|R|P|o
+C.70|Instrucción de control de visores PC|27/3/2024|2|R|P|v
+C.71|Hoja de proceso bisagras armadas|20/10/2020|1|R|P|v
+C.72|Control Spring Pop Benevia|7/7/2021|2|R|P|o
+C.73|Liberación de lote Spring Pop|1/7/2021|1|R|P|o
+C.74|Control cuerpo Luminox|24/11/2021|1|R|P|v
+C.75|Control aro Luminox|3/1/2022|1|R|P|v
+C.76|Control cartel ISO mojado|27/5/2022|1|R|P|v
+C.77|Control pico Luminox|12/7/2022|1|R|P|v
+C.78|Instrucción pico Luminox|27/3/2024|3|R|P|v
+C.79|Control Push Pop Benevia|22/6/2023|3|R|P|o
+C.80|Control purificador Acqua|2/8/2023|2|R|P|v
+C.81|Instrucción de control de cuerpos internos|27/3/2024|2|R|P|v
+C.82|Instrucción armado paneles Orbis|5/7/2023|1|R|P|v
+C.83|Control ring pop Benevia|3/10/2023|1|R|P|o
+C.84|POES Benevia|11/3/2024|1|R|P|o
+C.85|Instrucción ensamble y pegado purificador mini|23/3/2024|1|R|P|v
+C.86|Instrucción colocación de logo Prohygiene (1)|10/4/2024|1|R|P|v

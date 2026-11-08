@@ -1,0 +1,143 @@
+#fam|cod|nombre|fecha|rev|resp|soporte|estado
+Manual|MC|Manual de Calidad (copia Nº 1)|5/10/2022|14|Diego Ortiz|Papel/Digital|v
+Procedimientos|PR.01|Control de documentos|29/08/2020|06|Diego Ortiz||v
+Procedimientos|PR.02|Control de registros|24/07/2017|03|Diego Ortiz||v
+Procedimientos|PR.03|Control de producto no conforme|12/10/2020|11|Diego Ortiz||v
+Procedimientos|PR.04|Auditoría interna|12/10/2020|08|Diego Ortiz||v
+Procedimientos|PR.05|Acción correctiva y mejora continua|12/10/2020|05|Diego Ortiz||v
+Instructivos|I.01|Listado de proveedores|30/08/2021|05|Diego Ortiz||v
+Instructivos|I.02|Control de calidad|18/08/2022|11|Diego Ortiz||v
+Instructivos|I.03|Despacho de productos terminados|29/09/2023|07|Diego Ortiz||v
+Instructivos|I.04|Recepción de materia prima|18/08/2025|12|Diego Ortiz||v
+Instructivos|I.05|Muestra patrón|11/09/2017|06|Diego Ortiz||v
+Instructivos|I.06|Planilla de control de producción|01/09/2022|03|Diego Ortiz||v
+Instructivos|I.07|Secado de materiales|23/10/2015|04|Diego Ortiz||v
+Instructivos|I.08|Recepción certificado de calidad|30/08/2025|14|Diego Ortiz||v
+Instructivos|I.09|Obtención índices Apéndice C|27/06/2025|11|Diego Ortiz||v
+Instructivos|I.10|Perfil de puestos|17/08/2011|02|Diego Ortiz||v
+Instructivos|I.11|Cambio de molde y molino|01/09/2022|06|Diego Ortiz||v
+Instructivos|I.12|Producción en máquina inyectora|19/09/2018|04|Diego Ortiz||v
+Instructivos|I.13|Disponible|||||d
+Instructivos|I.14|Trazabilidad|08/09/2017|05|Diego Ortiz||v
+Instructivos|I.15|Copias de resguardo (backup)|11/10/2017|07|Diego Ortiz||v
+Instructivos|I.16|Mantenimiento|29/09/2023|07|Diego Ortiz||v
+Instructivos|I.17|Armado de tara|22/03/2024|02|Diego Ortiz||v
+Administrativos|A.01|Recepción de pedidos|1/1/2010|1|Maximiliano Pardo|Papel|v
+Administrativos|A.02|Nota de pedido|19/9/2018|5|Hernán Nieto|Papel|v
+Administrativos|A.02/1|Nota de pedido duplicado|19/9/2018|5|Hernán Nieto / Hugo Navarro|Papel|v
+Administrativos|A.03|Reclamos del cliente|1/2/2021|4|Diego Ortiz|Electrónico|v
+Administrativos|A.04|No conformidad de proveedores (unificado)|1/1/2010|1|Diego Ortiz|Electrónico|v
+Administrativos|A.05|Listado de registros|14/1/2014|2|Diego Ortiz|Electrónico|v
+Administrativos|A.06|Registro de firmas|1/1/2010|1|Diego Ortiz|Papel|v
+Administrativos|A.07|Organigrama|13/9/2025|6|Diego Ortiz|Papel|v
+Administrativos|A.08|Listado de proveedores|11/7/2011|2|Hernán Nieto|Papel|v
+Administrativos|A.09|Lista maestra de instrumentos|2/9/2025|6|Diego Ortiz|Electrónico|v
+Administrativos|A.10|Política de calidad|16/8/2017|3|Diego Ortiz|Papel|v
+Administrativos|A.11|Perfil de puestos|25/7/2017|2|Diego Ortiz|Papel|v
+Administrativos|A.12|Listado de materiales|1/1/2010|1|Diego Ortiz|Electrónico|v
+Administrativos|A.13|Flujograma|9/11/2010|2|Diego Ortiz|Papel|v
+Administrativos|A.14|Registro de asistencia|6/11/2019|2|Diego Ortiz|Papel|v
+Administrativos|A.15|Lista de distribución de documentos|29/6/2017|2|Diego Ortiz|Electrónico|v
+Administrativos|A.16|Matriz de relevos|16/1/2014|2|Maximiliano Pardo|Papel|v
+Administrativos|A.17|Control de recepción|30/8/2021|8|Hugo Navarro|Papel|v
+Administrativos|A.18|Programa de capacitación|16/1/2012|2|Diego Ortiz|Electrónico|v
+Administrativos|A.19|Agenda de la revisión por la dirección|24/7/2017|5|Diego Ortiz|Papel|v
+Administrativos|A.20|Informe de auditoría|17/7/2017|2|Diego Ortiz|Papel|v
+Administrativos|A.21|Disponible|||||d
+Administrativos|A.22|Matriz perfil de puestos|11/9/2014|7|Maximiliano Pardo|Papel|v
+Administrativos|A.23|Cronograma de auditoría interna|30/8/2011|2|Diego Ortiz|Papel|v
+Administrativos|A.24|Minuta de la revisión por la dirección|24/7/2017|5|Diego Ortiz|Papel|v
+Administrativos|A.25|Compras: evaluación de proveedores|13/9/2023|2|Diego Ortiz|Electrónico|v
+Administrativos|A.26|Registro de capacitaciones|25/9/2012|2|Diego Ortiz|Electrónico|v
+Administrativos|A.27|Control de cambios|2/5/2017|1|Diego Ortiz|Papel|v
+Administrativos|A.28|Detalle de carga|12/10/2016|1|Maximiliano Guillermo|Papel|v
+Administrativos|A.29|Matriz de riesgo|5/6/2018|2|Diego Ortiz|Electrónico|v
+Administrativos|A.30|Matriz de comunicaciones internas y externas|3/8/2017|1|Diego Ortiz|Electrónico|v
+Administrativos|A.31|FODA|4/5/2022|3|Diego Ortiz|Electrónico|v
+Administrativos|A.32|Partes interesadas|4/5/2022|3|Diego Ortiz|Electrónico|v
+Administrativos|A.33|Requisitos aplicables|15/8/2017|1|Diego Ortiz|Electrónico|v
+Administrativos|A.34|Flujograma de ingreso de nuevos productos|18/6/2019|1|Diego Ortiz|Papel|v
+Administrativos|A.35|Disponible|||||d
+Administrativos|A.36|Recepción de reclamo|10/10/2024|2|Diego Ortiz|Papel/Digital|v
+Administrativos|A.37|Informe de reclamo|7/5/2020|1|Diego Ortiz|Papel|v
+Administrativos|s/c|Remitos de Silver|||Administración|Papel|v
+Administrativos|s/c|Facturas de Silver|||Administración|Papel|v
+Administrativos|s/c|Legajos de personal|||Ignacio Ramírez|Papel|v
+Administrativos|s/c|Página web Silver Industrial|2017|1|Proveedor de IT|Electrónico|v
+Producción|P.01|Orden de trabajo interno|5/4/2018|4|Maximiliano Pardo|Papel|v
+Producción|P.01/1|Orden de trabajo interno depósito|12/9/2019|3|Maximiliano Pardo|Papel|v
+Producción|P.02|Control de producción|28/4/2010|2|Operario|Papel|v
+Producción|P.03|Informe de molde|22/8/2008|1|Operario|Papel|v
+Producción|P.04|Lote Silver|19/7/2013|3|Operario|Papel|v
+Producción|P.05|Autocontrol y control de scrap|15/5/2014|4|Operario|Papel|v
+Producción|P.06|Etiqueta producto terminado|1/1/2010|1|Maximiliano Pardo|Papel|v
+Producción|P.07|Listado de moldes|11/10/2026|3|Diego Ortiz|Electrónico|v
+Producción|P.08|Listado de tolerancias|9/11/2010|1|Maximiliano Pardo|Papel|v
+Producción|P.09|Disponible|||||d
+Producción|P.10|Formulario altas y bajas de molde|3/9/2019|2|Diego Ortiz|Electrónico|v
+Producción|P.11|Registro de secado|11/10/2023|6|Operarios|Papel|v
+Producción|P.12|Preparación de molde|22/9/2016|2|Maximiliano Pardo|Papel|v
+Producción|P.13|Battenfeld BA 1000T|22/9/2016|3|Maximiliano Pardo|Papel|v
+Producción|P.14|Disponible|||||d
+Producción|P.15|Ficha técnica|22/9/2016|2|Maximiliano Pardo|Papel|v
+Producción|P.16|Ficha técnica Haitian|22/9/2016|2|Maximiliano Pardo|Papel|v
+Producción|P.17|Listado de planos|1/8/2022|3|Maximiliano Pardo|Digital/Papel|v
+Producción|P.18|Flujograma de proceso|9/2/2012|1|Maximiliano Pardo|Papel|v
+Producción|P.19|Temperaturas de proceso y secado|18/9/2018|7|Maximiliano Pardo|Papel|v
+Producción|P.20|Programación robot Campetella|22/11/2016|3|Maximiliano Pardo|Papel|v
+Producción|P.21|Ficha técnica Haitian (2)|22/9/2016|2|Maximiliano Pardo|Papel|v
+Producción|P.22|Ficha técnica Battenfeld (2)|22/9/2016|3|Maximiliano Pardo|Papel|v
+Producción|P.23|Ficha técnica Haitian (3)|22/9/2016|2|Maximiliano Pardo|Papel|v
+Producción|P.24|Ficha técnica Haitian (4)|22/9/2016|2|Maximiliano Pardo|Papel|v
+Producción|P.25|Control de ciclos|1/6/2017|1|Diego Ortiz|Papel|v
+Producción|P.26|Valores de dosificación (velocidad)|27/8/2021|1|Maximiliano Pardo|Papel|v
+Producción|P.26.2|Valores de dosificación (gramos)|27/8/2021|1|Maximiliano Pardo|Papel|v
+Producción|P.27|Lay out|1/8/2022|1|Diego Ortiz|Digital|v
+Producción|P.28|Presupuesto gerencia|21/9/2022|1|Maximiliano Pardo|Digital|v
+Producción|s/c|Programación de producción|||Maximiliano Pardo|Electrónico|v
+Producción|s/c|Certificados de calibraciones externas (registro del proveedor)|||Diego Ortiz|Papel|v
+Calidad|Q.01|Identificación de producto no conforme|30/11/2009|1|Ramón Ortigoza|Papel|v
+Calidad|Q.02|Disponible|||||d
+Calidad|Q.03|Planilla de calidad|22/7/2011|2|Ramón Ortigoza|Electrónico|v
+Calidad|Q.04|Identificación de materiales rezagos|14/1/2022|3|Hugo Navarro|Papel|v
+Calidad|Q.06|Planillas de control e inspección|30/9/2024|7|Ramón Ortigoza|Papel|v
+Calidad|Q.07|Scrap|15/3/2018|4|Operario|Papel|v
+Calidad|Q.08|Identificación de materiales depósito|15/3/2018|3|Operario|Papel|v
+Calidad|Q.09|Identificación especial|19/9/2018|3|Ramón Ortigoza|Papel|v
+Calidad|Q.10|Identificación de materiales virgen|13/8/2019|7|Hugo Navarro|Papel|v
+Calidad|Q.11|Estadísticas no conforme|18/3/2024|2|Diego Ortiz|Electrónico|v
+Calidad|Q.12|Ficha de producto|11/10/2026|3|Diego Ortiz|Electrónico|v
+Calidad|Q.13|Historial de molde|20/9/2018|2|Walter Sánchez|Papel|v
+Calidad|Q.14|Muestra patrón|18/9/2017|3|Ramón Ortigoza|Papel|v
+Calidad|Q.15|Control de elementos provistos por el cliente|26/12/2016|2|Ramón Ortigoza|Papel|v
+Calidad|Q.16|Listado de elementos de comprobación|6/9/2018|2|Ramón Ortigoza|Electrónico|v
+Calidad|Q.17|Minuta de reuniones|15/11/2012|1|Diego Ortiz|Papel|v
+Calidad|Q.18|Auditoría 5S|1/8/2019|2|Diego Ortiz|Papel|v
+Calidad|Q.19|Registro de problemas de producción|29/6/2018|1|Diego Ortiz|Electrónico|v
+Calidad|Q.20|Listado de clientes con requisito de certificado|26/8/2022|2|Diego Ortiz|Electrónico|v
+Calidad|Q.21|Informe de no conformidad y oportunidades de mejora|7/10/2020|1|Diego Ortiz|Electrónico|v
+Calidad|Q.22|Registro de desvíos|22/2/2021|1|Diego Ortiz|Electrónico|v
+Calidad|Q.23|Listado de drivers / solución de problemas|10/3/2022|1|Diego Ortiz|Electrónico|v
+Calidad|Q.24|Hoja de reproceso|23/9/2024|2|Diego Ortiz|Papel|v
+Calidad|s/c|Certificados de calidad de materia prima (registro del proveedor)|||Diego Ortiz|Electrónico|v
+Mantenimiento|M.01|Control de carga de lubricante|12/7/2010|1|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.02|Mant. preventivo autoelevador|18/9/2020|6|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.03|Planilla de mant. máquinas varias|10/10/2023|2|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.04|Control agua blanda torre de enfriamiento y enfriadores|12/10/2023|7|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.05|Mant. preventivo soldadoras|19/9/2011|2|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.06|Mantenimiento compresor Atlas|3/4/2013|3|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.07|Ficha rotulación mant.|8/9/2016|2|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.08|Mantenimiento preventivo inyectora|23/6/2020|5|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.09|Check list autoelevador|9/9/2016|1|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.10|Lista de extintores|4/9/2019|2|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.11|Mantenimiento preventivo infraestructura|22/8/2022|4|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.12|Mant. preventivo compresor Atlas Copco|19/9/2017|4|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.13|Limpieza de intercambiadores|4/11/2019|3|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.14|Mant. preventivo robot Campetella|15/9/2014|2|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.15|Control de carga de lubricante manual|24/10/2023|2|D. Corsi / M. Canabarro|Papel|v
+Mantenimiento|M.16|Solicitud de reparación|26/6/2023|1|D. Corsi / M. Canabarro|Papel|v
+Sistemas|s/c|Backup copia completa|||Proveedor de IT|Electrónico|v
+Sistemas|s/c|Backup copia incremental|||Proveedor de IT|Electrónico|v
+Apéndices|Ap. A|Listado y distribución de documentos del sistema|11/7/2011|4|Diego Ortiz|Electrónico|v
+Apéndices|Ap. B|Documentación externa|7/9/2017|13|Diego Ortiz|Electrónico|v
+Apéndices|Ap. C|Metas para los objetivos de calidad|30/6/2025|16|Diego Ortiz|Electrónico|v
