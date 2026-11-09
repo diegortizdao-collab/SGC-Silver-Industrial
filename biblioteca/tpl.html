@@ -27,6 +27,7 @@ tr.r{cursor:pointer}tr.r:hover{background:#f5f7fd}tr.sel{background:#e8eefc!impo
 .btn{display:inline-block;margin:3px 6px 3px 0;padding:7px 11px;border-radius:8px;background:var(--ind);color:#fff;text-decoration:none;font-size:13px;font-weight:600}
 .btn.g{background:#fff;color:var(--ind);border:1px solid var(--ind)}
 .note{background:var(--wrbg);color:#5b3b00;border-radius:8px;padding:8px 10px;font-size:12.5px;margin:8px 0}
+a.btn[data-v]{cursor:pointer}.vt{display:inline}
 iframe{width:100%;height:420px;border:1px solid var(--line);border-radius:8px;margin-top:8px}
 .hint{font-size:12px;color:var(--mut);margin-top:4px}
 .empty{padding:30px;text-align:center;color:var(--mut)}
@@ -73,7 +74,7 @@ function render(){
   el('empty').style.display=L.length?'none':'block';
   el('cnt').textContent=L.length+' de '+REC.length+' documentos. ';
 }
-function panel(i){
+function panel(i,view){
   var r=REC[i];st.sel=i;
   var h='<h2>'+esc(r.cod)+' · '+esc(r.nom)+'</h2><span class="tag t-'+r.est+'">'+ESTL[r.est]+'</span>';
   h+='<dl><dt>Familia</dt><dd>'+esc(LBL[r.fam])+'</dd><dt>Revisión</dt><dd>'+esc(r.rv||'—')+'</dd><dt>Fecha</dt><dd>'+esc(r.fe||'—')+'</dd><dt>Responsable</dt><dd>'+esc(r.resp||'—')+'</dd><dt>Soporte</dt><dd>'+esc(r.sop||'—')+'</dd></dl>';
@@ -83,11 +84,15 @@ function panel(i){
   if(r.app)h+='<a class="btn" target="_blank" rel="noopener" href="'+r.app+'">Abrir la aplicación</a>';
   if(r.open)h+='<a class="btn'+(r.app?' g':'')+'" target="_blank" rel="noopener" href="'+r.open+'">Abrir en Drive</a>';
   if(r.est!=='d'){h+='<a class="btn g" target="_blank" rel="noopener" href="'+r.q+'">Buscar en Drive</a><a class="btn g" target="_blank" rel="noopener" href="'+r.fold+'">Carpeta</a>';}
-  if(r.prev){h+='<iframe loading="lazy" src="'+r.prev+'"></iframe><div class="hint">Si ves un aviso de acceso, iniciá sesión en Google con la cuenta que tiene permiso.</div>';}
+  var vw=(view&&((view==='app'&&r.app)||(view==='doc'&&r.prev)))?view:(r.app?'app':(r.prev?'doc':''));
+  if(r.app&&r.prev)h+='<div class="vt"><a class="btn'+(vw==='app'?'':' g')+'" data-v="app" data-i="'+i+'">Ver aplicación</a><a class="btn'+(vw==='doc'?'':' g')+'" data-v="doc" data-i="'+i+'">Ver documento</a></div>';
+  if(vw==='app'){h+='<iframe loading="lazy" src="'+r.app+'" style="height:560px"></iframe><div class="hint">Vista previa de la aplicación dentro del portal. Si no carga, usá «Abrir la aplicación».</div>';}
+  else if(vw==='doc'){h+='<iframe loading="lazy" src="'+r.prev+'"></iframe><div class="hint">Si ves un aviso de acceso, iniciá sesión en Google con la cuenta que tiene permiso.</div>';}
   else if(r.est!=='d')h+='<div class="hint">Sin vista previa directa para este documento todavía: se abre desde el botón de búsqueda o la carpeta.</div>';
   el('pn').innerHTML=h;render();
 }
 document.addEventListener('click',function(e){
+  var vb=e.target.closest&&e.target.closest('.vt a');if(vb){panel(+vb.dataset.i,vb.dataset.v);return}
   var c=e.target.closest&&e.target.closest('.chip');if(c){st[c.dataset.k]=c.dataset.v;render();return}
   var t=e.target.closest&&e.target.closest('tr.r');if(t)panel(+t.dataset.i);
 });
