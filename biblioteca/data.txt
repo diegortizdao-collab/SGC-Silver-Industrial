@@ -141,4 +141,4 @@ Sistemas|s/c|Backup copia completa|||Proveedor de IT|Electrónico|v
 Sistemas|s/c|Backup copia incremental|||Proveedor de IT|Electrónico|v
 Apéndices|Ap. A|Listado y distribución de documentos del sistema|08/11/2026|6|Diego Ortiz|Electrónico|v
 Apéndices|Ap. B|Documentación externa|7/9/2017|13|Diego Ortiz|Electrónico|v
-Apéndices|Ap. C|Metas para los objetivos de calidad|30/6/2025|16|Diego Ortiz|Electrónico|v
+Apéndices|Ap. C|Metas para los objetivos de calidad|10/11/2026|17|Diego Ortiz|Electrónico|v
