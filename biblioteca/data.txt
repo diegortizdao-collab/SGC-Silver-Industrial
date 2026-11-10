@@ -4,7 +4,7 @@ Procedimientos|PR.01|Control de documentos|29/08/2020|06|Diego Ortiz||v
 Procedimientos|PR.02|Control de registros|24/07/2017|03|Diego Ortiz||v
 Procedimientos|PR.03|Control de producto no conforme|12/10/2020|11|Diego Ortiz||v
 Procedimientos|PR.04|Auditoría interna|12/10/2020|08|Diego Ortiz||v
-Procedimientos|PR.05|Acción correctiva y mejora continua|08/11/2026|06|Diego Ortiz||v
+Procedimientos|PR.05|Acción correctiva y mejora continua|08/11/2026|07|Diego Ortiz||v
 Instructivos|I.01|Listado de proveedores|30/08/2021|05|Diego Ortiz||v
 Instructivos|I.02|Control de calidad|18/08/2022|11|Diego Ortiz||v
 Instructivos|I.03|Despacho de productos terminados|29/09/2023|07|Diego Ortiz||v
@@ -27,7 +27,7 @@ Administrativos|A.02|Nota de pedido|19/9/2018|5|Hernán Nieto|Papel|v
 Administrativos|A.02/1|Nota de pedido duplicado|19/9/2018|5|Hernán Nieto / Hugo Navarro|Papel|v
 Administrativos|A.03|Reclamos del cliente|1/2/2021|4|Diego Ortiz|Electrónico|v
 Administrativos|A.04|No conformidad de proveedores (unificado)|1/1/2010|1|Diego Ortiz|Electrónico|v
-Administrativos|A.05|Listado de registros|14/1/2014|2|Diego Ortiz|Electrónico|v
+Administrativos|A.05|Listado de registros|08/11/2026|4|Diego Ortiz|Electrónico|v
 Administrativos|A.06|Registro de firmas|1/1/2010|1|Diego Ortiz|Papel|v
 Administrativos|A.07|Organigrama|13/9/2025|6|Diego Ortiz|Papel|v
 Administrativos|A.08|Listado de proveedores|11/7/2011|2|Hernán Nieto|Papel|v
@@ -49,7 +49,7 @@ Administrativos|A.23|Cronograma de auditoría interna|30/8/2011|2|Diego Ortiz|Pa
 Administrativos|A.24|Minuta de la revisión por la dirección|24/7/2017|5|Diego Ortiz|Papel|v
 Administrativos|A.25|Compras: evaluación de proveedores|13/9/2023|2|Diego Ortiz|Electrónico|v
 Administrativos|A.26|Registro de capacitaciones|25/9/2012|2|Diego Ortiz|Electrónico|v
-Administrativos|A.27|Control de cambios|2/5/2017|1|Diego Ortiz|Papel|v
+Administrativos|A.27|Control de cambios|08/11/2026|3|Diego Ortiz|Papel|v
 Administrativos|A.28|Detalle de carga|12/10/2016|1|Maximiliano Guillermo|Papel|v
 Administrativos|A.29|Matriz de riesgo|5/6/2018|2|Diego Ortiz|Electrónico|v
 Administrativos|A.30|Matriz de comunicaciones internas y externas|3/8/2017|1|Diego Ortiz|Electrónico|v
@@ -60,7 +60,7 @@ Administrativos|A.34|Flujograma de ingreso de nuevos productos|18/6/2019|1|Diego
 Administrativos|A.35|Disponible|||||d
 Administrativos|A.36|Recepción de reclamo|10/10/2024|2|Diego Ortiz|Papel/Digital|v
 Administrativos|A.37|Informe de reclamo|7/5/2020|1|Diego Ortiz|Papel|v
-Administrativos|A.38|Registro de backups del Q.11|08/11/2026|0|Diego Ortiz|Electrónico|v
+Administrativos|A.38|Registro de backups de registros digitales|08/11/2026|1|Diego Ortiz|Electrónico|v
 Administrativos|s/c|Remitos de Silver|||Administración|Papel|v
 Administrativos|s/c|Facturas de Silver|||Administración|Papel|v
 Administrativos|s/c|Legajos de personal|||Ignacio Ramírez|Papel|v
@@ -116,7 +116,7 @@ Calidad|Q.17|Minuta de reuniones|15/11/2012|1|Diego Ortiz|Papel|v
 Calidad|Q.18|Auditoría 5S|1/8/2019|2|Diego Ortiz|Papel|v
 Calidad|Q.19|Registro de problemas de producción|29/6/2018|1|Diego Ortiz|Electrónico|v
 Calidad|Q.20|Listado de clientes con requisito de certificado|26/8/2022|2|Diego Ortiz|Electrónico|v
-Calidad|Q.21|Informe de no conformidad y oportunidades de mejora|7/10/2020|1|Diego Ortiz|Electrónico|v
+Calidad|Q.21|Informe de no conformidad y oportunidades de mejora||4|Diego Ortiz|Electrónico|v
 Calidad|Q.22|Registro de desvíos|22/2/2021|1|Diego Ortiz|Electrónico|v
 Calidad|Q.23|Listado de drivers / solución de problemas|10/3/2022|1|Diego Ortiz|Electrónico|v
 Calidad|Q.24|Hoja de reproceso|23/9/2024|2|Diego Ortiz|Papel|v
@@ -139,6 +139,6 @@ Mantenimiento|M.15|Control de carga de lubricante manual|24/10/2023|2|D. Corsi /
 Mantenimiento|M.16|Solicitud de reparación|26/6/2023|1|D. Corsi / M. Canabarro|Papel|v
 Sistemas|s/c|Backup copia completa|||Proveedor de IT|Electrónico|v
 Sistemas|s/c|Backup copia incremental|||Proveedor de IT|Electrónico|v
-Apéndices|Ap. A|Listado y distribución de documentos del sistema|08/11/2026|5|Diego Ortiz|Electrónico|v
+Apéndices|Ap. A|Listado y distribución de documentos del sistema|08/11/2026|6|Diego Ortiz|Electrónico|v
 Apéndices|Ap. B|Documentación externa|7/9/2017|13|Diego Ortiz|Electrónico|v
 Apéndices|Ap. C|Metas para los objetivos de calidad|30/6/2025|16|Diego Ortiz|Electrónico|v
