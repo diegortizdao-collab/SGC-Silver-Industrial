@@ -27,7 +27,7 @@ Administrativos|A.02|Nota de pedido|19/9/2018|5|Hernán Nieto|Papel|v
 Administrativos|A.02/1|Nota de pedido duplicado|19/9/2018|5|Hernán Nieto / Hugo Navarro|Papel|v
 Administrativos|A.03|Reclamos del cliente|1/2/2021|4|Diego Ortiz|Electrónico|v
 Administrativos|A.04|No conformidad de proveedores (unificado)|1/1/2010|1|Diego Ortiz|Electrónico|v
-Administrativos|A.05|Listado de registros|08/11/2026|4|Diego Ortiz|Electrónico|v
+Administrativos|A.05|Listado de registros|14/1/2014|2|Diego Ortiz|Electrónico|v
 Administrativos|A.06|Registro de firmas|1/1/2010|1|Diego Ortiz|Papel|v
 Administrativos|A.07|Organigrama|13/9/2025|6|Diego Ortiz|Papel|v
 Administrativos|A.08|Listado de proveedores|11/7/2011|2|Hernán Nieto|Papel|v
@@ -49,7 +49,7 @@ Administrativos|A.23|Cronograma de auditoría interna|30/8/2011|2|Diego Ortiz|Pa
 Administrativos|A.24|Minuta de la revisión por la dirección|24/7/2017|5|Diego Ortiz|Papel|v
 Administrativos|A.25|Compras: evaluación de proveedores|13/9/2023|2|Diego Ortiz|Electrónico|v
 Administrativos|A.26|Registro de capacitaciones|25/9/2012|2|Diego Ortiz|Electrónico|v
-Administrativos|A.27|Control de cambios|08/11/2026|3|Diego Ortiz|Papel|v
+Administrativos|A.27|Control de cambios|2/5/2017|1|Diego Ortiz|Papel|v
 Administrativos|A.28|Detalle de carga|12/10/2016|1|Maximiliano Guillermo|Papel|v
 Administrativos|A.29|Matriz de riesgo|5/6/2018|2|Diego Ortiz|Electrónico|v
 Administrativos|A.30|Matriz de comunicaciones internas y externas|3/8/2017|1|Diego Ortiz|Electrónico|v
